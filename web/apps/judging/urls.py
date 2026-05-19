@@ -5,9 +5,13 @@ from . import callback, submit_view, views
 app_name = "judging"
 
 urlpatterns = [
-    # Walking skeleton (Step 3, kept per Patch #1 option a)
-    path("skeleton/<slug:slug>", views.skeleton_page, name="skeleton_page"),
+    # Walking skeleton (Step 3, kept per Patch #1 option a).
+    # NOTE: `skeleton/submit` MUST come before `skeleton/<slug>` — Django's
+    # URL resolver picks the first match, and "submit" is a valid slug, so
+    # without this order POST /skeleton/submit gets routed to skeleton_page
+    # (no csrf_exempt → 403 CSRF). Order matters.
     path("skeleton/submit", views.skeleton_submit, name="skeleton_submit"),
+    path("skeleton/<slug:slug>", views.skeleton_page, name="skeleton_page"),
     path("api/submissions/<str:sub_id>", views.submission_status, name="submission_status"),
     # Step 8: real submission flow
     path("api/sessions/<str:session_id>/submit", submit_view.submit, name="submit"),
