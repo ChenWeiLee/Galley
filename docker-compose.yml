@@ -1,0 +1,181 @@
+# interview-judge stack
+# - web: Daphne ASGI (Django + Channels)
+# - scheduler: django-q2 worker (separate process — Plan REV-1)
+# - db: Postgres 16 (also stores django-q2 jobstore — Plan REV-1)
+# - redis-channels: Channels layer ONLY (Plan §3.5 — never share with Judge0)
+# - judge0-server / judge0-workers / redis-judge0 / db-judge0: Judge0 self-host
+# - nginx: reverse proxy with WSS upgrade (deferred to Step 12)
+
+services:
+  web:
+    build: .
+    command: daphne -b 0.0.0.0 -p 8000 web.interview_judge.asgi:application
+    env_file: .env
+    volumes:
+      - .:/app
+    ports:
+      - "8000:8000"
+    depends_on:
+      db:
+        condition: service_healthy
+      redis-channels:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "curl", "-fsS", "http://localhost:8000/healthz"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 30s
+    restart: unless-stopped
+
+  scheduler:
+    build: .
+    command: python web/manage.py qcluster
+    env_file: .env
+    volumes:
+      - .:/app
+    depends_on:
+      db:
+        condition: service_healthy
+    healthcheck:
+      # django-q2 writes a heartbeat to django_q.Stat at 60s cadence; if the
+      # latest entry is fresh, the cluster is alive. Avoids the qmonitor flag
+      # ambiguity flagged by the architect.
+      test:
+        - CMD-SHELL
+        - 'python -c "import django,os; os.environ.setdefault(''DJANGO_SETTINGS_MODULE'',''web.interview_judge.settings''); django.setup(); from django_q.models import Stat; from django.utils import timezone; from datetime import timedelta; assert Stat.get_all(broker=None) or Stat.objects.filter(last_update__gte=timezone.now()-timedelta(seconds=180)).exists(), ''no recent heartbeat''" || exit 1'
+      interval: 60s
+      timeout: 15s
+      retries: 3
+      start_period: 90s
+    restart: unless-stopped
+
+  db:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_DB: ${POSTGRES_DB}
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U $$POSTGRES_USER -d $$POSTGRES_DB"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    restart: unless-stopped
+
+  redis-channels:
+    # Channels layer ONLY — Plan §3.5
+    image: redis:7-alpine
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    restart: unless-stopped
+
+  # ---------------- Judge0 self-host stack ----------------
+  redis-judge0:
+    # Judge0's queue ONLY — Plan §3.5
+    image: redis:7-alpine
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    restart: unless-stopped
+
+  db-judge0:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_DB: judge0
+      POSTGRES_USER: judge0
+      POSTGRES_PASSWORD: judge0changeme
+    volumes:
+      - judge0-pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U judge0 -d judge0"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    restart: unless-stopped
+
+  judge0-server:
+    image: judge0/judge0:1.13.1
+    privileged: true
+    environment:
+      REDIS_HOST: redis-judge0
+      REDIS_PORT: 6379
+      POSTGRES_HOST: db-judge0
+      POSTGRES_PORT: 5432
+      POSTGRES_DB: judge0
+      POSTGRES_USER: judge0
+      POSTGRES_PASSWORD: judge0changeme
+      CALLBACK_GLOBAL_HEADERS: "X-Auth-Token: ${JUDGE0_CALLBACK_HMAC_SECRET}"
+    ports:
+      - "2358:2358"
+    depends_on:
+      db-judge0:
+        condition: service_healthy
+      redis-judge0:
+        condition: service_healthy
+    restart: unless-stopped
+
+  judge0-workers:
+    image: judge0/judge0:1.13.1
+    command: ["./scripts/workers"]
+    privileged: true
+    environment:
+      REDIS_HOST: redis-judge0
+      REDIS_PORT: 6379
+      POSTGRES_HOST: db-judge0
+      POSTGRES_PORT: 5432
+      POSTGRES_DB: judge0
+      POSTGRES_USER: judge0
+      POSTGRES_PASSWORD: judge0changeme
+    depends_on:
+      judge0-server:
+        condition: service_started
+    restart: unless-stopped
+
+  # ---------------- Step 12: nginx + nightly pg_dump ----------------
+
+  nginx:
+    image: nginx:1.27-alpine
+    volumes:
+      - ./ops/nginx/nginx.conf:/etc/nginx/nginx.conf:ro
+      - ./web/staticfiles:/staticfiles:ro
+    ports:
+      - "80:80"
+    depends_on:
+      web:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "wget", "-qO-", "http://localhost/nginx-healthz"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+    restart: unless-stopped
+
+  pgdump:
+    # Runs a daily pg_dump via cron. Dumps land in ./ops/backup/dumps/
+    # (host-bind-mounted), gzipped, 14-day retention.
+    image: postgres:16-alpine
+    entrypoint: ["/bin/sh", "-c"]
+    command:
+      - |
+        echo "0 3 * * * /backup/pg_dump.sh >> /backup/cron.log 2>&1" \
+            | crontab -
+        crond -f -l 2
+    env_file: .env
+    volumes:
+      - ./ops/backup:/backup
+    depends_on:
+      db:
+        condition: service_healthy
+    restart: unless-stopped
+
+volumes:
+  pgdata:
+  judge0-pgdata:

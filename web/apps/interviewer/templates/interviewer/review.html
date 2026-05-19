@@ -1,0 +1,101 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <title>Review {{ session.candidate_label }} — interview-judge</title>
+  <style>
+    body { font-family: -apple-system, sans-serif; max-width: 1100px; margin: 2rem auto;
+           padding: 0 1rem; }
+    h1 { margin-bottom: 0.2rem; }
+    section { border: 1px solid #ddd; border-radius: 6px; padding: 1rem; margin: 1rem 0; }
+    .verdict-accepted { color: #0a7c2f; font-weight: 600; }
+    .verdict-other { color: #b0001f; font-weight: 600; }
+    pre { background: #f5f5f5; padding: 0.6rem; overflow: auto; max-height: 320px;
+          font-family: ui-monospace, SFMono-Regular, monospace; }
+    .event { font-size: 0.9rem; margin: 0.2rem 0; }
+    .event-paste { color: #b0001f; }
+  </style>
+</head>
+<body>
+  <h1>Review</h1>
+  <p>
+    <strong>{{ session.candidate_label }}</strong> ·
+    <code>{{ session.problem_slug }}</code> · state: <code>{{ session.state }}</code> ·
+    started: {{ session.started_at|default:"—" }} ·
+    deadline: {{ session.deadline_utc|default:"—" }}
+  </p>
+
+  <section>
+    <h2>Submissions ({{ submissions|length }})</h2>
+    {% if submissions %}
+      {% for s in submissions %}
+        <div style="margin: 1rem 0;">
+          <p>
+            <code>{{ s.id }}</code> ·
+            {{ s.submitted_at }} ·
+            <span class="verdict-{% if s.verdict == 'accepted' %}accepted{% else %}other{% endif %}">
+              {{ s.verdict|default:s.state }}
+            </span>
+            {% if s.forced %}<small>(forced — auto-submit at deadline)</small>{% endif %}
+          </p>
+          <details>
+            <summary>Source</summary>
+            <pre>{{ s.source_code }}</pre>
+          </details>
+          {% if s.stderr %}<details><summary>stderr</summary><pre>{{ s.stderr }}</pre></details>{% endif %}
+        </div>
+      {% endfor %}
+    {% else %}
+      <p>No submissions.</p>
+    {% endif %}
+  </section>
+
+  <section>
+    <h2>Anti-cheat events ({{ events|length }})</h2>
+    {% if events %}
+      {% for e in events %}
+        <div class="event event-{{ e.event_type }}">
+          {{ e.captured_at|date:"H:i:s" }} · <strong>{{ e.event_type }}</strong>
+          {% if e.byte_len %}· {{ e.byte_len }} bytes{% endif %}
+          {% if e.meta %}· <code>{{ e.meta }}</code>{% endif %}
+        </div>
+      {% endfor %}
+    {% else %}
+      <p>None recorded.</p>
+    {% endif %}
+  </section>
+
+  <section>
+    <h2>Snapshot replay</h2>
+    {% if snapshots %}
+      <p>{{ snapshots|length }} snapshots between {{ snapshots.0.captured_at|time }} and
+         {{ snapshots|last }} {# template-only convenience; precise replay is Step 12 polish #}.</p>
+      <input type="range" id="snap-range" min="0" max="{{ snapshots|length|add:'-1' }}"
+             value="{{ snapshots|length|add:'-1' }}" style="width: 100%;">
+      <pre id="snap-text">(use the slider)</pre>
+      <script id="snap-data" type="application/json">
+        [{% for s in snapshots %}
+          {"t": "{{ s.captured_at|date:'c' }}", "lang": "{{ s.language }}",
+           "code": {{ s.source_code|escapejs|safe|stringformat:"\"%s\"" }}}
+          {% if not forloop.last %},{% endif %}
+        {% endfor %}]
+      </script>
+      <script>
+        // (Templating string-quoting above is messy; Step 12 will move to a JSON view.)
+        try {
+          const data = JSON.parse(document.getElementById('snap-data').textContent);
+          const range = document.getElementById('snap-range');
+          const txt = document.getElementById('snap-text');
+          function show(i) { txt.textContent = data[i] ? data[i].code : ''; }
+          range.addEventListener('input', () => show(range.value));
+          show(range.value);
+        } catch (e) {
+          document.getElementById('snap-text').textContent = '(snapshot replay disabled — Step 12 polish)';
+        }
+      </script>
+    {% else %}
+      <p>No snapshots.</p>
+    {% endif %}
+  </section>
+</body>
+</html>

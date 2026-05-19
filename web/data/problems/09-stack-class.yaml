@@ -1,0 +1,32 @@
+slug: stack-class
+title: "Implement a Stack with O(1) GetMin"
+statement_md: |
+  Design a stack that supports `push x`, `pop`, `top`, and `getMin` — each in
+  O(1). Read commands from stdin, one per line; print the result of each
+  `top`/`getMin`/`pop` on its own line. `pop` prints the popped value.
+
+  ## Example
+  Input:
+  ```
+  push 3
+  push 1
+  push 5
+  getMin
+  pop
+  getMin
+  ```
+  Output:
+  ```
+  1
+  5
+  1
+  ```
+languages: ["python", "javascript"]
+testcases:
+  - stdin: "push 3\npush 1\npush 5\ngetMin\npop\ngetMin\n"
+    expected_stdout: "1\n5\n1\n"
+    is_example: true
+  - stdin: "push 2\npush 2\npush 1\ngetMin\npop\ngetMin\n"
+    expected_stdout: "1\n1\n2\n"
+  - stdin: "push 0\ntop\ngetMin\n"
+    expected_stdout: "0\n0\n"

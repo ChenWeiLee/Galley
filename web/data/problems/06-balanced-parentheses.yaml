@@ -1,0 +1,23 @@
+slug: balanced-parentheses
+title: "Balanced Parentheses"
+statement_md: |
+  Given a string of brackets `()[]{}`, decide whether it is balanced. Print
+  `true` or `false`.
+
+  ## Examples
+  - `()[]{}` → `true`
+  - `(]` → `false`
+  - `([)]` → `false`
+languages: ["python", "javascript"]
+testcases:
+  - stdin: "()[]{}\n"
+    expected_stdout: "true\n"
+    is_example: true
+  - stdin: "(]\n"
+    expected_stdout: "false\n"
+  - stdin: "([)]\n"
+    expected_stdout: "false\n"
+  - stdin: "{[]}\n"
+    expected_stdout: "true\n"
+  - stdin: "\n"
+    expected_stdout: "true\n"

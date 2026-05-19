@@ -1,0 +1,77 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <title>Observing {{ session.candidate_label }} — interview-judge</title>
+  <style>
+    body { font-family: -apple-system, sans-serif; margin: 0; height: 100vh;
+           display: grid; grid-template-rows: auto 1fr; }
+    header { padding: 0.6rem 1rem; background: #fafafa; border-bottom: 1px solid #ddd;
+             display: flex; gap: 1rem; align-items: center; }
+    #status { margin-left: auto; padding: 0.2rem 0.5rem; border-radius: 3px;
+              background: #e8f0fe; font-size: 0.85rem; }
+    #status.disconnected { background: #fce8e6; }
+    #editor { width: 100%; height: 100%; }
+  </style>
+  <link rel="stylesheet"
+        href="https://cdn.jsdelivr.net/npm/monaco-editor@0.46.0/min/vs/editor/editor.main.css">
+</head>
+<body>
+  <header>
+    <strong>Observing:</strong>
+    {{ session.candidate_label }} ·
+    <code>{{ session.problem_slug }}</code> ·
+    Session <code>{{ session.id }}</code>
+    <span id="status">connecting…</span>
+  </header>
+  <div id="editor"></div>
+
+  <script src="https://cdn.jsdelivr.net/npm/monaco-editor@0.46.0/min/vs/loader.js"></script>
+  <script>
+    const SID = "{{ session.id }}";
+    require.config({ paths: { vs: 'https://cdn.jsdelivr.net/npm/monaco-editor@0.46.0/min/vs' }});
+    require(['vs/editor/editor.main'], function () {
+      const editor = monaco.editor.create(document.getElementById('editor'), {
+        value: '// waiting for candidate snapshots…\n',
+        language: 'python',
+        readOnly: true,
+        automaticLayout: true,
+        minimap: { enabled: false },
+        fontSize: 14,
+      });
+      const status = document.getElementById('status');
+
+      let backoff = 1000;
+      function connect() {
+        const proto = location.protocol === 'https:' ? 'wss' : 'ws';
+        const ws = new WebSocket(`${proto}://${location.host}/ws/observe/${SID}/`);
+        ws.onopen = () => { status.textContent = 'live'; status.classList.remove('disconnected');
+                            backoff = 1000; };
+        ws.onclose = () => { status.textContent = 'disconnected — reconnecting…';
+                             status.classList.add('disconnected');
+                             setTimeout(connect, backoff);
+                             backoff = Math.min(backoff * 2, 8000); };
+        ws.onmessage = (ev) => {
+          const data = JSON.parse(ev.data);
+          if (data.type === 'snapshot') {
+            const lang = data.language || 'python';
+            if (editor.getModel().getLanguageId() !== lang) {
+              monaco.editor.setModelLanguage(editor.getModel(),
+                lang === 'javascript' ? 'javascript' : 'python');
+            }
+            // Preserve scroll position; setValue moves the cursor
+            const pos = editor.getScrollTop();
+            editor.setValue(data.code || '');
+            editor.setScrollTop(pos);
+          } else if (data.type === 'verdict') {
+            // Step 8 broadcasts verdict events; surface as a status flash
+            status.textContent = `verdict: ${data.verdict}`;
+            setTimeout(() => { status.textContent = 'live'; }, 5000);
+          }
+        };
+      }
+      connect();
+    });
+  </script>
+</body>
+</html>

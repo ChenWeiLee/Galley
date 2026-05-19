@@ -1,0 +1,26 @@
+slug: anagram-check
+title: "Valid Anagram"
+statement_md: |
+  Given two strings on two lines, decide whether the second is an anagram of
+  the first (same letters, same counts, case-sensitive).
+
+  Print `true` or `false`.
+
+  ## Example
+  Input:
+  ```
+  anagram
+  nagaram
+  ```
+  Output: `true`
+languages: ["python", "javascript"]
+testcases:
+  - stdin: "anagram\nnagaram\n"
+    expected_stdout: "true\n"
+    is_example: true
+  - stdin: "rat\ncar\n"
+    expected_stdout: "false\n"
+  - stdin: "a\nA\n"
+    expected_stdout: "false\n"
+  - stdin: "listen\nsilent\n"
+    expected_stdout: "true\n"

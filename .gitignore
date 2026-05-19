@@ -1,0 +1,35 @@
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+.Python
+*.egg-info/
+.pytest_cache/
+.coverage
+htmlcov/
+.mypy_cache/
+.ruff_cache/
+
+.env
+.env.local
+*.sqlite3
+*.db
+
+.DS_Store
+.idea/
+.vscode/
+*.swp
+
+# build/dist
+build/
+dist/
+*.log
+
+# Playwright
+test-results/
+playwright-report/
+playwright/.cache/
+
+# project specific
+ops/backups/*
+!ops/backups/.gitkeep

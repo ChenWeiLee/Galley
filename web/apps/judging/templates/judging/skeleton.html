@@ -1,0 +1,123 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <title>{{ problem.title }} — interview-judge</title>
+  <style>
+    body { font-family: -apple-system, sans-serif; margin: 0; display: grid;
+           grid-template-columns: 1fr 1fr; height: 100vh; }
+    #left { padding: 1rem 1.5rem; overflow: auto; border-right: 1px solid #ddd; }
+    #right { display: flex; flex-direction: column; }
+    #editor { flex: 1; }
+    #toolbar { padding: 0.5rem; border-bottom: 1px solid #ddd; display: flex; gap: 0.5rem;
+               align-items: center; background: #fafafa; }
+    #result { padding: 1rem; border-top: 1px solid #ddd; height: 200px; overflow: auto;
+              background: #f7f7f7; font-family: ui-monospace, SFMono-Regular, monospace; }
+    button { padding: 0.4rem 0.8rem; font-size: 0.95rem; cursor: pointer; }
+    .verdict-accepted { color: #0a7c2f; font-weight: bold; }
+    .verdict-other { color: #b0001f; font-weight: bold; }
+    select { padding: 0.3rem; }
+  </style>
+  <link rel="stylesheet" data-name="vs/editor/editor.main"
+        href="https://cdn.jsdelivr.net/npm/monaco-editor@0.46.0/min/vs/editor/editor.main.css">
+</head>
+<body>
+  <section id="left">
+    <h1>{{ problem.title }}</h1>
+    <pre>{{ problem.statement }}</pre>
+    <p><small>Walking skeleton (Step 3 / Patch #1 option a). Auth + countdown
+       come in Steps 5–6.</small></p>
+  </section>
+
+  <section id="right">
+    <div id="toolbar">
+      <label>Language:
+        <select id="language">
+          {% for lang in problem.languages %}
+            <option value="{{ lang }}">{{ lang }}</option>
+          {% endfor %}
+        </select>
+      </label>
+      <button id="run">Run / Submit</button>
+      <span id="status"></span>
+    </div>
+    <div id="editor"></div>
+    <pre id="result">(no submission yet)</pre>
+  </section>
+
+  <script src="https://cdn.jsdelivr.net/npm/monaco-editor@0.46.0/min/vs/loader.js"></script>
+  <script>
+    const STARTERS = {
+      python: 'print(1)\n',
+      javascript: 'console.log(1);\n',
+    };
+
+    require.config({ paths: { vs: 'https://cdn.jsdelivr.net/npm/monaco-editor@0.46.0/min/vs' }});
+    require(['vs/editor/editor.main'], function () {
+      const langSel = document.getElementById('language');
+      const editor = monaco.editor.create(document.getElementById('editor'), {
+        value: STARTERS[langSel.value] || '',
+        language: langSel.value === 'javascript' ? 'javascript' : 'python',
+        automaticLayout: true,
+        minimap: { enabled: false },
+        fontSize: 14,
+      });
+
+      langSel.addEventListener('change', () => {
+        const lang = langSel.value;
+        monaco.editor.setModelLanguage(editor.getModel(),
+          lang === 'javascript' ? 'javascript' : 'python');
+        if (!editor.getValue() || Object.values(STARTERS).includes(editor.getValue())) {
+          editor.setValue(STARTERS[lang] || '');
+        }
+      });
+
+      document.getElementById('run').addEventListener('click', async () => {
+        const status = document.getElementById('status');
+        const result = document.getElementById('result');
+        status.textContent = 'submitting…';
+        result.textContent = '(running)';
+        try {
+          const r = await fetch('/skeleton/submit', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              language: langSel.value,
+              source_code: editor.getValue(),
+            }),
+          });
+          const data = await r.json();
+          if (!data.id) {
+            result.textContent = 'submit error: ' + (data.error || 'unknown');
+            status.textContent = '';
+            return;
+          }
+          status.textContent = 'queued (id=' + data.id + ')';
+          // Poll every 1s until terminal.
+          const start = Date.now();
+          while (Date.now() - start < 30000) {
+            await new Promise(r => setTimeout(r, 1000));
+            const sr = await fetch('/api/submissions/' + data.id);
+            const sd = await sr.json();
+            if (sd.state !== 'pending') {
+              const cls = sd.verdict === 'accepted' ? 'verdict-accepted' : 'verdict-other';
+              result.innerHTML =
+                '<span class="' + cls + '">verdict: ' + sd.verdict + '</span>\n' +
+                'stdout: ' + (sd.stdout || '(empty)') + '\n' +
+                'stderr: ' + (sd.stderr || '(empty)') + '\n' +
+                'time_ms: ' + (sd.time_ms ?? '-') + '  memory_kb: ' + (sd.memory_kb ?? '-');
+              status.textContent = 'done';
+              return;
+            }
+          }
+          result.textContent = 'timed out waiting for verdict';
+          status.textContent = '';
+        } catch (e) {
+          result.textContent = 'fetch error: ' + e;
+          status.textContent = '';
+        }
+      });
+    });
+  </script>
+</body>
+</html>

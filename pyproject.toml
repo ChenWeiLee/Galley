@@ -1,0 +1,19 @@
+[project]
+name = "interview-judge"
+version = "0.1.0"
+description = "Internal coding-interview judge platform (self-host)"
+requires-python = ">=3.12"
+
+[tool.ruff]
+line-length = 100
+target-version = "py312"
+
+[tool.ruff.lint]
+select = ["E", "F", "I", "B", "UP", "N"]
+ignore = ["E501"]
+
+[tool.pytest.ini_options]
+DJANGO_SETTINGS_MODULE = "web.interview_judge.settings"
+python_files = ["test_*.py"]
+testpaths = ["tests"]
+asyncio_mode = "auto"

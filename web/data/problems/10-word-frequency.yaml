@@ -1,0 +1,32 @@
+slug: word-frequency
+title: "Top-K Word Frequency"
+statement_md: |
+  Count word frequencies (whitespace-separated, case-insensitive). Print the
+  top K words by descending frequency; ties broken alphabetically.
+
+  ## Input
+  - Line 1: integer K
+  - Lines 2..: text body (multiple lines)
+
+  ## Example
+  Input:
+  ```
+  2
+  the quick brown fox
+  the lazy dog
+  ```
+  Output:
+  ```
+  the 2
+  brown 1
+  ```
+languages: ["python", "javascript"]
+time_limit_ms: 2500
+testcases:
+  - stdin: "2\nthe quick brown fox\nthe lazy dog\n"
+    expected_stdout: "the 2\nbrown 1\n"
+    is_example: true
+  - stdin: "1\nhello hello world\n"
+    expected_stdout: "hello 2\n"
+  - stdin: "3\na A a B b c\n"
+    expected_stdout: "a 3\nb 2\nc 1\n"

@@ -1,0 +1,80 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <title>{{ session.candidate_label }} — interview</title>
+  <style>
+    body { font-family: -apple-system, sans-serif; margin: 0; display: grid;
+           grid-template-columns: 1fr 1fr; height: 100vh; }
+    #left { padding: 1rem 1.5rem; overflow: auto; border-right: 1px solid #ddd; }
+    #right { display: flex; flex-direction: column; }
+    #toolbar { padding: 0.5rem; border-bottom: 1px solid #ddd; display: flex;
+               gap: 0.5rem; align-items: center; background: #fafafa; }
+    #editor { flex: 1; }
+    #result { padding: 1rem; border-top: 1px solid #ddd; height: 200px; overflow: auto;
+              background: #f7f7f7; font-family: ui-monospace, SFMono-Regular, monospace; }
+    #countdown { margin-left: auto; font-variant-numeric: tabular-nums;
+                 font-weight: 600; padding: 0.3rem 0.6rem; background: #fff3cd;
+                 border-radius: 4px; }
+    #countdown.urgent { background: #f8d7da; color: #721c24; }
+  </style>
+</head>
+<body>
+  <section id="left">
+    <h1>Interview: {{ session.problem_slug }}</h1>
+    <p><small>Candidate: {{ session.candidate_label }} · Session: {{ session.id }}</small></p>
+    <div id="problem-statement">
+      <p>(Problem statement renders here once Step 7 wires the candidate page
+         to fetch problem markdown by slug. Walking-skeleton fallback:
+         <a href="/skeleton/hello-1">/skeleton/hello-1</a>.)</p>
+    </div>
+  </section>
+  <section id="right">
+    <div id="toolbar">
+      <span>Language: <strong>python</strong></span>
+      <button id="run">Submit (placeholder — Step 8)</button>
+      <span id="countdown" data-session-id="{{ session.id }}"
+            data-remaining="{{ remaining_seconds }}">
+        --:--
+      </span>
+    </div>
+    <div id="editor">
+      <textarea style="width: 100%; height: 100%; font-family: monospace;
+                       font-size: 14px; border: none; padding: 0.8rem;"
+                placeholder="Step 7 will replace this textarea with Monaco."
+      ></textarea>
+    </div>
+    <pre id="result">(Step 8 wires real submission flow.)</pre>
+  </section>
+  <script>
+    // Patch #2 countdown — anchored to server-supplied deadline.
+    // Polls /api/sessions/<id>/remaining every 5s to re-sync (Plan §3.3).
+    (function () {
+      const el = document.getElementById('countdown');
+      const sid = el.dataset.sessionId;
+      let remaining = parseInt(el.dataset.remaining, 10) || 0;
+      function fmt(s) {
+        if (s < 0) s = 0;
+        const m = Math.floor(s / 60), r = s % 60;
+        return String(m).padStart(2, '0') + ':' + String(r).padStart(2, '0');
+      }
+      function tick() {
+        el.textContent = fmt(remaining);
+        if (remaining < 60) el.classList.add('urgent'); else el.classList.remove('urgent');
+        remaining = Math.max(0, remaining - 1);
+      }
+      tick(); setInterval(tick, 1000);
+      async function reanchor() {
+        try {
+          const r = await fetch('/api/sessions/' + sid + '/remaining');
+          if (!r.ok) return;
+          const d = await r.json();
+          if (typeof d.remaining_seconds === 'number') remaining = d.remaining_seconds;
+          if (d.state === 'frozen') document.getElementById('run').disabled = true;
+        } catch (e) {}
+      }
+      reanchor(); setInterval(reanchor, 5000);
+    })();
+  </script>
+</body>
+</html>

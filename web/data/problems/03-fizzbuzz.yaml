@@ -1,0 +1,28 @@
+slug: fizzbuzz
+title: "FizzBuzz"
+statement_md: |
+  Print numbers from 1 to N. For multiples of 3 print "Fizz", for multiples of
+  5 print "Buzz", for multiples of both print "FizzBuzz".
+
+  ## Input
+  - One integer N (1 ≤ N ≤ 100).
+
+  ## Example
+  Input: `5`
+  Output:
+  ```
+  1
+  2
+  Fizz
+  4
+  Buzz
+  ```
+languages: ["python", "javascript"]
+testcases:
+  - stdin: "5\n"
+    expected_stdout: "1\n2\nFizz\n4\nBuzz\n"
+    is_example: true
+  - stdin: "15\n"
+    expected_stdout: "1\n2\nFizz\n4\nBuzz\nFizz\n7\n8\nFizz\nBuzz\n11\nFizz\n13\n14\nFizzBuzz\n"
+  - stdin: "1\n"
+    expected_stdout: "1\n"
