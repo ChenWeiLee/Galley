@@ -147,9 +147,10 @@ services:
       - ./ops/nginx/nginx.conf:/etc/nginx/nginx.conf:ro
       - ./web/staticfiles:/staticfiles:ro
     ports:
-      # host port 8080 → container 80. Host port 80 is typically already
-      # owned by macOS Web Sharing / Tailscale / another stack on dev machines.
-      - "8080:80"
+      # Production: bind host port 80. Mac dev overrides this via
+      # `docker-compose.override.yml` (which Compose merges automatically)
+      # because port 80 is usually taken on macOS dev machines.
+      - "80:80"
     depends_on:
       web:
         condition: service_healthy

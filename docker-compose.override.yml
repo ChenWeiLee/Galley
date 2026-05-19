@@ -1,0 +1,10 @@
+# Local dev overrides — NOT committed-as-prod-config.
+#
+# Mac dev: host port 80 is usually taken (Tailscale, Web Sharing, …).
+# This override binds nginx to 8080 so `docker compose up` works locally
+# without root. On the Linux deploy host, delete this file and nginx
+# uses the default port 80.
+services:
+  nginx:
+    ports:
+      - "8080:80"

@@ -2,6 +2,21 @@
 
 Self-host single-machine deployment via `docker compose`. No K8s, no cloud.
 
+## Where to deploy
+
+Pick a Linux box with:
+- Docker Engine 24+ + docker-compose plugin
+- 4 cores, 8 GB RAM, 20 GB disk (Judge0 + Postgres + your verdict history)
+- **cgroup v1 memory controller enabled** (Judge0's `isolate` sandbox
+  requires this; modern Ubuntu/Debian have it on by default but a fully
+  cgroup-v2-only host will reject every submission with an "internal error".
+  Check via `mount | grep cgroup` — you should see `cgroup/memory` listed)
+- Reachable to candidates (LAN, VPN, or Tailscale subnet)
+
+> macOS note: Docker Desktop on Apple Silicon does NOT expose cgroup v1
+> memory, so Judge0 cannot launch isolate. Dev on Mac is fine for everything
+> EXCEPT actually executing candidate code — deploy to Linux for that.
+
 ## First-time bring-up
 
 ```bash
@@ -31,6 +46,37 @@ curl http://localhost:8000/readyz             # direct to Daphne; all checks sho
 ```
 
 After this, `docker compose up -d` brings everything back without any manual steps.
+
+### Deploying from this dev repo to a fresh Linux box
+
+Recommended path (no GitHub remote required):
+
+```bash
+# On your Mac (this repo, this commit):
+rsync -avz --delete \
+    --exclude '.git' --exclude '.env' --exclude 'ops/backup/dumps' \
+    --exclude '__pycache__' --exclude '.DS_Store' \
+    "/Users/enoch/Library/Mobile Documents/com~apple~CloudDocs/GitHub/CodeInterview/" \
+    user@your-linux-box:/opt/interview-judge/
+
+# DELETE the override that pins nginx to :8080 on Mac:
+ssh user@your-linux-box "rm /opt/interview-judge/docker-compose.override.yml"
+
+# On the Linux box:
+ssh user@your-linux-box
+cd /opt/interview-judge
+cp .env.example .env
+$EDITOR .env   # set DJANGO_SECRET_KEY, POSTGRES_PASSWORD,
+               # JUDGE0_CALLBACK_HMAC_SECRET, DJANGO_ALLOWED_HOSTS
+make up
+docker compose exec web python web/manage.py migrate
+docker compose exec web python web/manage.py createsuperuser
+make seed
+curl http://localhost/readyz   # should be all "ok"
+```
+
+If you push to a private GitHub repo instead, replace the rsync with
+`git clone` + the same Linux-side steps.
 
 ## Daily life
 
