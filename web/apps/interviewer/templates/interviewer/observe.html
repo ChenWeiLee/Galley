@@ -1,30 +1,62 @@
 {% extends "base.html" %}
 {% block title %}Observe — {{ session.candidate_label }}{% endblock %}
+{% block bodyclass %}stage{% endblock %}
+{% block masthead %}{% endblock %}
 
 {% block head %}
 <link rel="stylesheet"
       href="https://cdn.jsdelivr.net/npm/monaco-editor@0.46.0/min/vs/editor/editor.main.css">
 <style>
-  .observe-meta { display: flex; align-items: center; gap: var(--s-3);
-                  flex-wrap: wrap; }
-  .observe-meta .badge { font-size: 11px; }
+  .observe-bar {
+    display: flex; align-items: center; gap: var(--s-3);
+    padding: var(--s-3) var(--s-5);
+    border-bottom: 1px solid var(--rule);
+    background: #15161b;
+    height: 52px;
+  }
+  .observe-meta {
+    font-family: var(--mono); font-size: 12px; color: var(--mute);
+    letter-spacing: 0.04em;
+  }
+  .observe-meta b { color: var(--ink); font-weight: 500; }
+  .observe-meta code { color: var(--vermillion-ink); font-size: 11px; }
+  .ws-tag {
+    font-family: var(--mono); font-size: 10.5px;
+    letter-spacing: 0.14em; text-transform: uppercase;
+    padding: 3px 8px; border-radius: var(--r);
+    transition: background .2s, color .2s;
+  }
+  .ws-tag.live { background: var(--moss-soft); color: #b3d098;
+                 box-shadow: 0 0 8px rgba(74, 103, 57, 0.4); }
+  .ws-tag.reconnecting { background: var(--mustard-soft); color: #f1c378; }
+  .ws-tag.connecting { color: var(--mute); border: 1px solid var(--rule); }
+  .ws-tag::before { content: '● '; }
+  .observe-link {
+    font-family: var(--mono); font-size: 11px;
+    letter-spacing: 0.1em; text-transform: uppercase;
+    color: var(--ink-2); text-decoration: none;
+    border: 1px solid var(--rule); padding: 4px 10px;
+  }
+  .observe-link:hover { color: var(--vermillion-ink); border-color: var(--vermillion);
+                        text-decoration: none; }
 </style>
 {% endblock %}
 
 {% block body %}
-<div class="toolbar">
-  <strong>Observing</strong>
-  <div class="observe-meta">
-    <span>{{ session.candidate_label }}</span>
-    <span class="badge badge-soft">{{ session.problem_slug }}</span>
+<div class="observe-bar">
+  <span class="label">⁂ OBSERVING</span>
+  <span class="observe-meta">
+    <b>{{ session.candidate_label }}</b>
+    <span style="margin: 0 8px; color: var(--faint);">·</span>
+    {{ session.problem_slug }}
+    <span style="margin: 0 8px; color: var(--faint);">·</span>
     <code>{{ session.id }}</code>
-  </div>
-  <div class="spacer"></div>
-  <span id="ws-status" class="badge badge-pending">connecting</span>
-  <a href="{% url 'interviewer:review' session.id %}"
-     class="btn btn-ghost btn-sm">Review</a>
+  </span>
+  <span style="flex: 1;"></span>
+  <span id="ws-status" class="ws-tag connecting">connecting</span>
+  <a href="{% url 'interviewer:review' session.id %}" class="observe-link">review →</a>
 </div>
-<div id="editor" style="height: calc(100vh - 52px - 44px); width: 100%;"></div>
+<div id="editor" style="height: calc(100vh - 52px); width: 100%;"></div>
 
 <script src="https://cdn.jsdelivr.net/npm/monaco-editor@0.46.0/min/vs/loader.js"></script>
 <script>
@@ -39,21 +71,24 @@
       automaticLayout: true,
       minimap: { enabled: false },
       fontSize: 14,
-      fontFamily: 'SF Mono, ui-monospace, monospace',
+      fontFamily: 'JetBrains Mono, SF Mono, ui-monospace, monospace',
+      fontLigatures: true,
+      smoothScrolling: true,
+      padding: { top: 16 },
     });
     const status = document.getElementById('ws-status');
     const setStatus = (text, cls) => {
       status.textContent = text;
-      status.className = 'badge ' + cls;
+      status.className = 'ws-tag ' + cls;
     };
 
     let backoff = 1000;
     function connect() {
       const proto = location.protocol === 'https:' ? 'wss' : 'ws';
       const ws = new WebSocket(`${proto}://${location.host}/ws/observe/${SID}/`);
-      ws.onopen = () => { setStatus('live', 'badge-active'); backoff = 1000; };
+      ws.onopen = () => { setStatus('live', 'live'); backoff = 1000; };
       ws.onclose = () => {
-        setStatus('reconnecting…', 'badge-frozen');
+        setStatus('reconnecting', 'reconnecting');
         setTimeout(connect, backoff);
         backoff = Math.min(backoff * 2, 8000);
       };
@@ -69,9 +104,9 @@
           editor.setValue(data.code || '');
           editor.setScrollTop(top);
         } else if (data.type === 'verdict') {
-          const cls = data.verdict === 'accepted' ? 'badge-active' : 'badge-frozen';
-          setStatus('verdict: ' + data.verdict, cls);
-          setTimeout(() => setStatus('live', 'badge-active'), 5000);
+          setStatus('verdict · ' + data.verdict,
+                    data.verdict === 'accepted' ? 'live' : 'reconnecting');
+          setTimeout(() => setStatus('live', 'live'), 5000);
         }
       };
     }

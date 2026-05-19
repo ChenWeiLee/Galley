@@ -1,7 +1,7 @@
 {% extends "base.html" %}
-{% block title %}{{ problem.title }} — interview-judge{% endblock %}
-
-{% block topnav %}{% endblock %}
+{% block title %}{{ problem.title }} — diagnostic{% endblock %}
+{% block bodyclass %}stage{% endblock %}
+{% block masthead %}{% endblock %}
 
 {% block head %}
 <link rel="stylesheet"
@@ -9,35 +9,53 @@
 {% endblock %}
 
 {% block body %}
-<div class="split">
-  <aside class="split-left">
-    <div class="badge badge-soft" style="margin-bottom: var(--s-3);">
-      Walking skeleton · diagnostic
+<div class="stage-shell">
+  <aside class="stage-brief">
+    <div class="brief-eyebrow">
+      <span class="label">⁂ Walking skeleton</span>
+      <span class="label">DIAGNOSTIC</span>
     </div>
-    <h1>{{ problem.title }}</h1>
+    <h1 class="brief-title">{{ problem.title }}</h1>
+    <div class="brief-meta">
+      Hardcoded · No auth · No countdown
+    </div>
     <div class="statement">
-      <pre style="white-space: pre-wrap;">{{ problem.statement }}</pre>
+      <h2>Specification</h2>
+      <p style="white-space: pre-wrap;">{{ problem.statement }}</p>
     </div>
   </aside>
 
-  <section class="split-right">
-    <div class="toolbar">
+  <section class="stage-work">
+    <div class="work-bar">
       <select id="language">
         {% for lang in problem.languages %}
           <option value="{{ lang }}">{{ lang }}</option>
         {% endfor %}
       </select>
       <div class="spacer"></div>
-      <span id="status" class="badge badge-soft" style="display:none;"></span>
-      <button id="run" class="btn">Run</button>
+      <span id="status" class="ws-tag connecting" style="display:none;"></span>
+      <button id="run" class="btn btn-vermillion">run ▸</button>
     </div>
     <div id="editor"></div>
-    <div class="result-pane">
-      <h4>Result</h4>
-      <div id="result" style="color: var(--fg-dim);">(no submission yet)</div>
+    <div class="work-result">
+      <div class="work-result-head">⁂ Result</div>
+      <div id="result" class="work-result-body" style="color: var(--mute);">
+        Press <code>run</code> to dispatch to Judge0.
+      </div>
     </div>
   </section>
 </div>
+
+<style>
+  .ws-tag { font-family: var(--mono); font-size: 10.5px;
+            letter-spacing: 0.14em; text-transform: uppercase;
+            padding: 3px 8px; border-radius: var(--r); }
+  .ws-tag.connecting, .ws-tag.queued { background: var(--mustard-soft); color: #f1c378; }
+  .ws-tag.accepted { background: var(--moss-soft); color: #b3d098; }
+  .ws-tag.failed, .ws-tag.timeout, .ws-tag.wrong_answer,
+  .ws-tag.runtime_error, .ws-tag.compile_error, .ws-tag.tle, .ws-tag.mle,
+  .ws-tag.internal_error { background: var(--vermillion-soft); color: #f1a99c; }
+</style>
 
 <script src="https://cdn.jsdelivr.net/npm/monaco-editor@0.46.0/min/vs/loader.js"></script>
 <script>
@@ -56,8 +74,10 @@
       automaticLayout: true,
       minimap: { enabled: false },
       fontSize: 14,
-      fontFamily: 'SF Mono, ui-monospace, monospace',
-      padding: { top: 12 },
+      fontFamily: 'JetBrains Mono, SF Mono, ui-monospace, monospace',
+      fontLigatures: true,
+      smoothScrolling: true,
+      padding: { top: 16 },
     });
 
     langSel.addEventListener('change', () => {
@@ -72,10 +92,11 @@
     document.getElementById('run').addEventListener('click', async () => {
       const status = document.getElementById('status');
       const result = document.getElementById('result');
-      status.style.display = ''; status.textContent = 'queued';
-      status.className = 'badge badge-pending';
-      result.style.color = 'var(--fg-dim)';
-      result.textContent = 'running…';
+      status.style.display = '';
+      status.textContent = 'queued';
+      status.className = 'ws-tag queued';
+      result.style.color = 'var(--mute)';
+      result.textContent = '⟳ dispatching to Judge0…';
       try {
         const r = await fetch('/skeleton/submit', {
           method: 'POST',
@@ -85,9 +106,10 @@
         });
         const data = await r.json();
         if (!data.id) {
-          status.className = 'badge badge-frozen'; status.textContent = 'failed';
-          result.style.color = 'var(--danger)';
-          result.textContent = 'submit error: ' + (data.error || 'unknown');
+          status.className = 'ws-tag failed';
+          status.textContent = 'failed';
+          result.style.color = '#f1a99c';
+          result.textContent = '✗ submit error: ' + (data.error || 'unknown');
           return;
         }
         const start = Date.now();
@@ -97,25 +119,27 @@
           const sd = await sr.json();
           if (sd.state !== 'pending') {
             const ok = sd.verdict === 'accepted';
-            status.className = 'badge badge-' + sd.verdict;
+            status.className = 'ws-tag ' + sd.verdict;
             status.textContent = sd.verdict;
-            result.style.color = ok ? 'var(--success)' : 'var(--danger)';
+            result.style.color = ok ? '#a3c181' : '#f1a99c';
             result.innerHTML =
-              '<strong>' + sd.verdict + '</strong>'
-              + (sd.stdout ? '\n\nstdout:\n' + sd.stdout : '')
-              + (sd.stderr ? '\n\nstderr:\n' + sd.stderr : '')
-              + '\n\ntime: ' + (sd.time_ms ?? '-') + ' ms'
-              + '  memory: ' + (sd.memory_kb ?? '-') + ' KB';
+              '<strong>' + (ok ? '✓' : '✗') + ' ' + sd.verdict.toUpperCase() + '</strong>'
+              + (sd.stdout ? '\n\n— stdout —\n' + sd.stdout : '')
+              + (sd.stderr ? '\n\n— stderr —\n' + sd.stderr : '')
+              + '\n\n· time   ' + (sd.time_ms ?? '-').toString().padStart(4, ' ') + ' ms'
+              + '\n· memory ' + (sd.memory_kb ?? '-').toString().padStart(4, ' ') + ' kb';
             return;
           }
         }
-        status.className = 'badge badge-frozen'; status.textContent = 'timeout';
-        result.style.color = 'var(--warning)';
-        result.textContent = 'timed out waiting for verdict (>30s)';
+        status.className = 'ws-tag timeout';
+        status.textContent = 'timeout';
+        result.style.color = '#f1c378';
+        result.textContent = '⌛ timed out waiting for verdict (>30s)';
       } catch (e) {
-        status.className = 'badge badge-frozen'; status.textContent = 'error';
-        result.style.color = 'var(--danger)';
-        result.textContent = 'fetch error: ' + e;
+        status.className = 'ws-tag failed';
+        status.textContent = 'error';
+        result.style.color = '#f1a99c';
+        result.textContent = '✗ fetch error: ' + e;
       }
     });
   });

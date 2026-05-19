@@ -3,105 +3,119 @@
 
 {% block body %}
 <div class="page">
-  <div class="page-header">
-    <div>
-      <h1>Dashboard</h1>
-      <div class="subtitle">Start a new interview or review past sessions.</div>
-    </div>
+  <div class="page-eyebrow">
+    <span class="label">§ 01 — DASHBOARD</span>
+    <span class="label label-mute">{{ user.username|upper }} EDITION</span>
   </div>
+  <h1 class="page-title">A live <em>ledger</em> of coding interviews.</h1>
+  <p class="page-deck">
+    Issue a single-use token URL to a candidate, observe the live editor in
+    real time, and review submissions, anti-cheat events, and snapshot
+    replays after the session ends.
+  </p>
+  <div class="page-deck-rule"></div>
 
-  <div class="card">
-    <div class="card-header">
-      <h2>New session</h2>
+  <section class="section">
+    <div class="section-head">
+      <div class="section-no">§ 02</div>
+      <div class="section-title">Open a new interview</div>
+      <div class="section-meta">FORM</div>
     </div>
-    <form id="create-form">
-      {% csrf_token %}
-      <div class="form-grid">
-        <div class="form-row">
-          <label for="f-problem">Problem</label>
-          <select id="f-problem" name="problem_slug" required>
-            <option value="">— pick one —</option>
-            {% for p in problems %}
-              <option value="{{ p.slug }}">{{ p.title }}</option>
-            {% endfor %}
-          </select>
+    <div class="section-body">
+      <form id="create-form">
+        {% csrf_token %}
+        <div class="form-grid">
+          <div class="form-row">
+            <label for="f-problem">PROBLEM</label>
+            <select id="f-problem" name="problem_slug" required>
+              <option value="">— select —</option>
+              {% for p in problems %}
+                <option value="{{ p.slug }}">{{ p.title }}</option>
+              {% endfor %}
+            </select>
+          </div>
+          <div class="form-row">
+            <label for="f-candidate">CANDIDATE LABEL</label>
+            <input id="f-candidate" name="candidate_label"
+                   placeholder="Alice · req-12345 · etc." required>
+          </div>
+          <div class="form-row">
+            <label for="f-duration">DURATION (MIN)</label>
+            <input id="f-duration" name="duration_minutes" type="number"
+                   value="60" min="1" max="240" required>
+          </div>
+          <div class="form-row" style="justify-content: end;">
+            <button type="submit" class="btn">Issue token URL ⤳</button>
+          </div>
         </div>
-        <div class="form-row">
-          <label for="f-candidate">Candidate label</label>
-          <input id="f-candidate" name="candidate_label"
-                 placeholder="Alice / req-12345" required>
+      </form>
+
+      <div id="created-result" style="display:none; margin-top: var(--s-5);">
+        <div class="note note-vermillion" style="margin-bottom: var(--s-3);">
+          ¶ Single-use, expires in 24 h. Send to candidate now.
         </div>
-        <div class="form-row">
-          <label for="f-duration">Duration (minutes)</label>
-          <input id="f-duration" name="duration_minutes" type="number"
-                 value="60" min="1" max="240" required>
-        </div>
-        <div class="form-row" style="align-self: end;">
-          <button type="submit" class="btn">Create + get token URL</button>
+        <div class="copy-row">
+          <div class="url-block" id="created-url"></div>
+          <button class="btn btn-ghost" id="copy-btn">Copy</button>
         </div>
       </div>
-    </form>
-
-    <div id="created-result" style="display:none; margin-top: var(--s-4);">
-      <div class="note note-ok" style="margin-bottom: var(--s-3);">
-        Token URL is single-use, valid for 24h. Send this to the candidate now.
-      </div>
-      <div class="copy-row">
-        <div class="url-box" id="created-url"></div>
-        <button class="btn btn-ghost" id="copy-btn">Copy</button>
-      </div>
     </div>
-  </div>
+  </section>
 
-  <div style="height: var(--s-5)"></div>
-
-  <div class="card">
-    <div class="card-header">
-      <h2>Recent sessions</h2>
-      <span class="badge badge-soft">{{ sessions|length }} total</span>
+  <section class="section">
+    <div class="section-head">
+      <div class="section-no">§ 03</div>
+      <div class="section-title">Recent sessions</div>
+      <div class="section-meta">{{ sessions|length }} TOTAL</div>
     </div>
-    {% if sessions %}
-      <table class="tbl">
-        <thead>
-          <tr>
-            <th>Candidate</th>
-            <th>Problem</th>
-            <th>State</th>
-            <th>Started</th>
-            <th style="text-align:right">Actions</th>
-          </tr>
-        </thead>
-        <tbody>
-          {% for s in sessions %}
+    <div class="section-body">
+      {% if sessions %}
+        <table class="tbl">
+          <thead>
             <tr>
-              <td>
-                <div>{{ s.candidate_label }}</div>
-                <code>{{ s.id }}</code>
-              </td>
-              <td>{{ s.problem_slug }}</td>
-              <td><span class="badge badge-{{ s.state }}">{{ s.state }}</span></td>
-              <td>{{ s.started_at|default:"—" }}</td>
-              <td style="text-align:right">
-                {% if s.state == 'active' %}
-                  <a href="{% url 'interviewer:observe' s.id %}"
-                     class="btn btn-ghost btn-sm">Observe</a>
-                  <button class="btn btn-ghost btn-sm" data-reentry="{{ s.id }}">
-                    Re-entry
-                  </button>
-                {% endif %}
-                <a href="{% url 'interviewer:review' s.id %}"
-                   class="btn btn-ghost btn-sm">Review</a>
-              </td>
+              <th>Candidate</th>
+              <th>Problem</th>
+              <th>State</th>
+              <th>Started</th>
+              <th class="col-right">Actions</th>
             </tr>
-          {% endfor %}
-        </tbody>
-      </table>
-    {% else %}
-      <div class="empty">
-        <div class="empty-title">No sessions yet</div>
-        <div>Create your first one above.</div>
-      </div>
-    {% endif %}
+          </thead>
+          <tbody>
+            {% for s in sessions %}
+              <tr>
+                <td>
+                  <div>{{ s.candidate_label }}</div>
+                  <code>{{ s.id }}</code>
+                </td>
+                <td>{{ s.problem_slug }}</td>
+                <td><span class="tag tag-{{ s.state }}">{{ s.state }}</span></td>
+                <td>{{ s.started_at|default:"—" }}</td>
+                <td class="col-right">
+                  {% if s.state == 'active' %}
+                    <a href="{% url 'interviewer:observe' s.id %}"
+                       class="btn btn-ghost btn-sm">observe</a>
+                    <button class="btn btn-ghost btn-sm"
+                            data-reentry="{{ s.id }}">re-entry</button>
+                  {% endif %}
+                  <a href="{% url 'interviewer:review' s.id %}"
+                     class="btn btn-ghost btn-sm">review</a>
+                </td>
+              </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      {% else %}
+        <div class="empty">
+          <div class="empty-title">No sessions yet.</div>
+          <div>Issue your first token URL above.</div>
+        </div>
+      {% endif %}
+    </div>
+  </section>
+
+  <div class="colophon">
+    <span>INTERVIEW–JUDGE · INTERNAL EDITION</span>
+    <span>SELF-HOST · NO TELEMETRY · PG_DUMP NIGHTLY</span>
   </div>
 </div>
 
@@ -129,7 +143,7 @@
     const url = document.getElementById('created-url').textContent;
     await navigator.clipboard.writeText(url);
     const b = document.getElementById('copy-btn');
-    const t = b.textContent; b.textContent = 'Copied';
+    const t = b.textContent; b.textContent = 'Copied ✓';
     setTimeout(() => { b.textContent = t; }, 1200);
   });
 
@@ -142,7 +156,7 @@
       });
       const data = await r.json();
       if (data.error) { alert(data.error); return; }
-      prompt('Re-entry URL (also single-use):', data.reentry_url);
+      prompt('Re-entry URL (single-use):', data.reentry_url);
     });
   });
 </script>

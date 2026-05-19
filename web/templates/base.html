@@ -1,28 +1,34 @@
 {% load static %}
 <!DOCTYPE html>
-<html lang="en" data-theme="dark">
+<html lang="en">
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>{% block title %}interview-judge{% endblock %}</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link rel="stylesheet" href="{% static 'css/app.css' %}">
   {% block head %}{% endblock %}
 </head>
-<body>
-  {% block topnav %}
-  <nav class="topnav">
-    <span class="topnav-brand"><span class="topnav-brand-dot"></span>interview-judge</span>
-    {% if user.is_authenticated and user.is_staff %}
-      <span class="topnav-links">
-        <a href="{% url 'interviewer:dashboard' %}">Dashboard</a>
-        <a href="/admin/interviewer/problem/">Problems</a>
-      </span>
-      <span class="topnav-right">
-        <span class="topnav-user">{{ user.username }}</span>
-        <a href="/admin/logout/" class="btn btn-ghost btn-sm">Sign out</a>
-      </span>
-    {% endif %}
-  </nav>
+<body class="{% block bodyclass %}{% endblock %}">
+  {% block masthead %}
+  <header class="masthead">
+    <div class="masthead-bar">
+      <span class="masthead-brand">interview&#8202;⁄&#8202;<em>judge</em></span>
+      <span class="masthead-vol">VOL. 01 — INTERNAL EDITION</span>
+      {% if user.is_authenticated and user.is_staff %}
+        <nav class="masthead-nav">
+          <a href="{% url 'interviewer:dashboard' %}">dashboard</a>
+          <a href="/admin/interviewer/problem/">problems</a>
+          <a href="/admin/">admin</a>
+        </nav>
+        <div class="masthead-right">
+          <span class="masthead-user">{{ user.username }}</span>
+          <a href="/admin/logout/" class="btn btn-ghost btn-sm">sign out</a>
+        </div>
+      {% endif %}
+    </div>
+  </header>
   {% endblock %}
   {% block body %}{% endblock %}
 </body>

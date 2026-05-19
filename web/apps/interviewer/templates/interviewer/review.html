@@ -3,133 +3,173 @@
 
 {% block body %}
 <div class="page page-wide">
-  <div class="page-header">
-    <div>
-      <h1>Review</h1>
-      <div class="subtitle">
-        {{ session.candidate_label }}
-        · <code>{{ session.problem_slug }}</code>
-        · <span class="badge badge-{{ session.state }}">{{ session.state }}</span>
-      </div>
-    </div>
-    <div style="text-align:right; color: var(--fg-dim); font-size: 12px;">
-      Started: {{ session.started_at|default:"—" }}<br>
-      Deadline: {{ session.deadline_utc|default:"—" }}
-    </div>
+  <div class="page-eyebrow">
+    <span class="label">⁂ FILE — REVIEW</span>
+    <span class="label label-mute">SESSION {{ session.id }}</span>
   </div>
+  <h1 class="page-title">Review of <em>{{ session.candidate_label }}</em></h1>
+  <p class="page-deck">
+    Final submissions, anti-cheat timeline, and snapshot replay for the
+    <code>{{ session.problem_slug }}</code> interview.
+  </p>
 
-  <div class="card">
-    <div class="card-header">
-      <h2>Submissions</h2>
-      <span class="badge badge-soft">{{ submissions|length }}</span>
+  <dl style="display: grid; grid-template-columns: 1fr 1fr;
+             gap: 0 var(--s-7); margin: 0 0 var(--s-6);
+             padding: var(--s-3) 0;
+             border-top: 1px solid var(--rule-strong);
+             border-bottom: 1px solid var(--rule-strong);">
+    <div class="leader-row">
+      <dt>State</dt><span class="leader"></span>
+      <dd><span class="tag tag-{{ session.state }}">{{ session.state }}</span></dd>
     </div>
-    {% if submissions %}
-      {% for s in submissions %}
-        <div style="border-bottom: 1px solid var(--border-soft);
-                    padding: var(--s-3) 0;">
-          <div style="display: flex; align-items: center; gap: var(--s-3);
-                      margin-bottom: var(--s-2);">
-            <span class="badge badge-{{ s.verdict|default:'pending' }}">
-              {{ s.verdict|default:s.state }}
-            </span>
-            {% if s.forced %}<span class="badge badge-soft">forced</span>{% endif %}
-            <code>{{ s.id }}</code>
-            <span style="flex:1"></span>
-            <span style="color: var(--fg-dim); font-size: 12px;">
-              {{ s.submitted_at|date:"H:i:s" }}
-            </span>
-          </div>
-          <details>
-            <summary style="color: var(--fg-dim); cursor: pointer;
-                            font-size: 12px;">View source ({{ s.language }})</summary>
-            <pre style="margin-top: var(--s-2);">{{ s.source_code }}</pre>
-          </details>
-          {% if s.stderr %}
-            <details style="margin-top: var(--s-2);">
-              <summary style="color: var(--danger); cursor: pointer; font-size: 12px;">
-                stderr
-              </summary>
-              <pre style="margin-top: var(--s-2);">{{ s.stderr }}</pre>
+    <div class="leader-row">
+      <dt>Started</dt><span class="leader"></span>
+      <dd>{{ session.started_at|default:"—" }}</dd>
+    </div>
+    <div class="leader-row">
+      <dt>Problem</dt><span class="leader"></span>
+      <dd>{{ session.problem_slug }}</dd>
+    </div>
+    <div class="leader-row">
+      <dt>Deadline</dt><span class="leader"></span>
+      <dd>{{ session.deadline_utc|default:"—" }}</dd>
+    </div>
+  </dl>
+
+  <!-- § 01 — SUBMISSIONS -->
+  <section class="section">
+    <div class="section-head">
+      <div class="section-no">§ 01</div>
+      <div class="section-title">Submissions</div>
+      <div class="section-meta">{{ submissions|length }} TOTAL</div>
+    </div>
+    <div class="section-body">
+      {% if submissions %}
+        {% for s in submissions %}
+          <div class="sub-row">
+            <div class="sub-row-head">
+              <span class="tag tag-{{ s.verdict|default:'pending' }}">
+                {{ s.verdict|default:s.state }}
+              </span>
+              {% if s.forced %}<span class="tag tag-soft">forced</span>{% endif %}
+              <span class="sub-row-id">{{ s.id }}</span>
+              <span class="sub-row-time">{{ s.submitted_at|date:"H:i:s" }}</span>
+            </div>
+            <details>
+              <summary>view source · {{ s.language }}</summary>
+              <pre style="margin-top: var(--s-2);">{{ s.source_code }}</pre>
             </details>
-          {% endif %}
+            {% if s.stderr %}
+              <details style="margin-top: var(--s-2);">
+                <summary style="color: var(--vermillion-ink);">stderr</summary>
+                <pre style="margin-top: var(--s-2);
+                            border-left-color: var(--vermillion);">{{ s.stderr }}</pre>
+              </details>
+            {% endif %}
+          </div>
+        {% endfor %}
+      {% else %}
+        <div class="empty">
+          <div class="empty-title">No submissions filed.</div>
+          <div>The candidate did not submit during this session.</div>
         </div>
-      {% endfor %}
-    {% else %}
-      <div class="empty">No submissions in this session.</div>
-    {% endif %}
-  </div>
-
-  <div style="height: var(--s-5)"></div>
-
-  <div class="card">
-    <div class="card-header">
-      <h2>Anti-cheat timeline</h2>
-      <span class="badge badge-soft">{{ events|length }}</span>
+      {% endif %}
     </div>
-    {% if events %}
-      <table class="tbl">
-        <thead><tr><th style="width: 90px">Time</th><th>Event</th><th>Detail</th></tr></thead>
-        <tbody>
-          {% for e in events %}
-            <tr>
-              <td><code>{{ e.captured_at|date:"H:i:s" }}</code></td>
-              <td><span class="badge badge-soft">{{ e.event_type }}</span></td>
-              <td style="color: var(--fg-dim); font-size: 12px;">
-                {% if e.byte_len %}{{ e.byte_len }} bytes{% endif %}
-                {% if e.meta %}<code>{{ e.meta }}</code>{% endif %}
-              </td>
-            </tr>
-          {% endfor %}
-        </tbody>
-      </table>
-    {% else %}
-      <div class="empty">No anti-cheat events recorded.</div>
-    {% endif %}
-  </div>
+  </section>
 
-  <div style="height: var(--s-5)"></div>
-
-  <div class="card">
-    <div class="card-header">
-      <h2>Snapshot replay</h2>
-      <span class="badge badge-soft">{{ snapshots|length }}</span>
+  <!-- § 02 — ANTI-CHEAT TIMELINE -->
+  <section class="section">
+    <div class="section-head">
+      <div class="section-no">§ 02</div>
+      <div class="section-title">Anti-cheat events</div>
+      <div class="section-meta">{{ events|length }} RECORDED</div>
     </div>
-    {% if snapshots %}
-      <div class="snap-controls" style="margin-bottom: var(--s-3);">
-        <input type="range" id="snap-range" min="0"
-               max="{{ snapshots|length|add:'-1' }}"
-               value="{{ snapshots|length|add:'-1' }}">
-        <span class="snap-info" id="snap-info">—</span>
-      </div>
-      <pre id="snap-text" style="min-height: 200px;">(use the slider)</pre>
-      <script id="snap-data" type="application/json">
-        [{% for s in snapshots %}
-          {"t": "{{ s.captured_at|date:'c' }}", "lang": "{{ s.language }}",
-           "code": {{ s.source_code|escapejs|safe|stringformat:"\"%s\"" }}}
-          {% if not forloop.last %},{% endif %}
-        {% endfor %}]
-      </script>
-      <script>
-        try {
-          const data = JSON.parse(document.getElementById('snap-data').textContent);
-          const range = document.getElementById('snap-range');
-          const txt = document.getElementById('snap-text');
-          const info = document.getElementById('snap-info');
-          function show(i) {
-            const s = data[i]; if (!s) return;
-            txt.textContent = s.code || '(empty)';
-            info.textContent = (parseInt(i)+1) + ' / ' + data.length
-              + '  ·  ' + s.t.replace('T', ' ').split('.')[0];
+    <div class="section-body">
+      {% if events %}
+        <table class="tbl">
+          <thead>
+            <tr><th style="width: 100px">Time</th><th>Event</th><th>Detail</th></tr>
+          </thead>
+          <tbody>
+            {% for e in events %}
+              <tr>
+                <td><code>{{ e.captured_at|date:"H:i:s" }}</code></td>
+                <td><span class="tag tag-soft">{{ e.event_type }}</span></td>
+                <td style="color: var(--mute); font-size: 12px;">
+                  {% if e.byte_len %}{{ e.byte_len }} bytes{% endif %}
+                  {% if e.meta %}<code>{{ e.meta }}</code>{% endif %}
+                </td>
+              </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      {% else %}
+        <div class="empty">
+          <div class="empty-title">Clean record.</div>
+          <div>No visibility changes, pastes, or window blurs detected.</div>
+        </div>
+      {% endif %}
+    </div>
+  </section>
+
+  <!-- § 03 — SNAPSHOT REPLAY -->
+  <section class="section">
+    <div class="section-head">
+      <div class="section-no">§ 03</div>
+      <div class="section-title">Snapshot replay</div>
+      <div class="section-meta">{{ snapshots|length }} FRAMES</div>
+    </div>
+    <div class="section-body">
+      {% if snapshots %}
+        <div style="display: flex; align-items: center; gap: var(--s-3);
+                    margin-bottom: var(--s-3);">
+          <input type="range" id="snap-range" min="0"
+                 max="{{ snapshots|length|add:'-1' }}"
+                 value="{{ snapshots|length|add:'-1' }}"
+                 style="flex: 1; accent-color: var(--vermillion);">
+          <span id="snap-info" style="font-family: var(--mono); font-size: 11px;
+                                       color: var(--mute);
+                                       letter-spacing: 0.06em;">—</span>
+        </div>
+        <pre id="snap-text" style="min-height: 240px;">(use the slider)</pre>
+        <script id="snap-data" type="application/json">
+          [{% for s in snapshots %}
+            {"t": "{{ s.captured_at|date:'c' }}", "lang": "{{ s.language }}",
+             "code": {{ s.source_code|escapejs|safe|stringformat:"\"%s\"" }}}
+            {% if not forloop.last %},{% endif %}
+          {% endfor %}]
+        </script>
+        <script>
+          try {
+            const data = JSON.parse(document.getElementById('snap-data').textContent);
+            const range = document.getElementById('snap-range');
+            const txt = document.getElementById('snap-text');
+            const info = document.getElementById('snap-info');
+            function show(i) {
+              const s = data[i]; if (!s) return;
+              txt.textContent = s.code || '(empty)';
+              info.textContent = String(parseInt(i)+1).padStart(3, '0')
+                + ' / ' + String(data.length).padStart(3, '0')
+                + '  ·  ' + s.t.replace('T', ' ').split('.')[0];
+            }
+            range.addEventListener('input', () => show(range.value));
+            show(range.value);
+          } catch (e) {
+            document.getElementById('snap-text').textContent = '(replay disabled)';
           }
-          range.addEventListener('input', () => show(range.value));
-          show(range.value);
-        } catch (e) {
-          document.getElementById('snap-text').textContent = '(replay disabled)';
-        }
-      </script>
-    {% else %}
-      <div class="empty">No snapshots captured.</div>
-    {% endif %}
+        </script>
+      {% else %}
+        <div class="empty">
+          <div class="empty-title">No snapshots captured.</div>
+          <div>The candidate did not type during this session.</div>
+        </div>
+      {% endif %}
+    </div>
+  </section>
+
+  <div class="colophon">
+    <span>FILED · {{ session.updated_at|date:"Y-m-d H:i" }}</span>
+    <span>INTERVIEW–JUDGE · INTERNAL EDITION</span>
   </div>
 </div>
 {% endblock %}

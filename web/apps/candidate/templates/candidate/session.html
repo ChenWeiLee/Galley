@@ -1,7 +1,7 @@
 {% extends "base.html" %}
-{% block title %}Interview — {{ session.candidate_label }}{% endblock %}
-
-{% block topnav %}{% endblock %}
+{% block title %}{{ session.problem_slug }} — interview{% endblock %}
+{% block bodyclass %}stage{% endblock %}
+{% block masthead %}{% endblock %}
 
 {% block head %}
 <link rel="stylesheet"
@@ -9,34 +9,38 @@
 {% endblock %}
 
 {% block body %}
-<div class="split">
-  <aside class="split-left">
-    <h1 style="margin-bottom: var(--s-1);">{{ session.problem_slug }}</h1>
-    <div style="color: var(--fg-dim); font-size: 12px; margin-bottom: var(--s-5);">
-      {{ session.candidate_label }} · session <code>{{ session.id }}</code>
+<div class="stage-shell">
+  <aside class="stage-brief">
+    <div class="brief-eyebrow">
+      <span class="label">⁂ Brief</span>
+      <span class="label">SESSION {{ session.id }}</span>
+    </div>
+    <h1 class="brief-title">{{ session.problem_slug }}</h1>
+    <div class="brief-meta">
+      Candidate · <b>{{ session.candidate_label }}</b>
     </div>
     <div class="statement" id="problem-statement">
-      <p style="color: var(--fg-dim);">Loading problem statement…</p>
+      <p style="color: var(--mute);">Loading problem statement…</p>
     </div>
   </aside>
 
-  <section class="split-right">
-    <div class="toolbar">
+  <section class="stage-work">
+    <div class="work-bar">
       <select id="language">
-        <option value="python">Python</option>
-        <option value="javascript">JavaScript</option>
+        <option value="python">python</option>
+        <option value="javascript">javascript</option>
       </select>
       <div class="spacer"></div>
-      <span id="countdown" class="countdown normal"
+      <span id="countdown" class="countdown"
             data-session-id="{{ session.id }}"
             data-remaining="{{ remaining_seconds }}">--:--</span>
-      <button id="run" class="btn">Submit</button>
+      <button id="run" class="btn btn-vermillion">submit ▸</button>
     </div>
     <div id="editor"></div>
-    <div class="result-pane">
-      <h4>Result</h4>
-      <div id="result" style="color: var(--fg-dim);">
-        Submit your code to run the test cases.
+    <div class="work-result">
+      <div class="work-result-head">⁂ Result</div>
+      <div id="result" class="work-result-body" style="color: var(--mute);">
+        Press <code>submit</code> to run the test cases.
       </div>
     </div>
   </section>
@@ -60,8 +64,11 @@
       automaticLayout: true,
       minimap: { enabled: false },
       fontSize: 14,
-      fontFamily: 'SF Mono, ui-monospace, monospace',
-      padding: { top: 12 },
+      fontFamily: 'JetBrains Mono, SF Mono, ui-monospace, monospace',
+      fontLigatures: true,
+      padding: { top: 16 },
+      smoothScrolling: true,
+      cursorBlinking: 'smooth',
     });
 
     langSel.addEventListener('change', () => {
@@ -72,7 +79,7 @@
       if (!v || Object.values(STARTERS).includes(v)) editor.setValue(STARTERS[lang]);
     });
 
-    // ---- countdown (Patch #2: server-anchored) ----
+    // countdown (Patch #2: server-anchored)
     const cd = document.getElementById('countdown');
     let remaining = parseInt(cd.dataset.remaining, 10) || 0;
     function fmt(s) {
@@ -83,7 +90,7 @@
     function tick() {
       cd.textContent = fmt(remaining);
       cd.className = (remaining < 60 && remaining > 0)
-        ? 'countdown urgent' : 'countdown normal';
+        ? 'countdown urgent' : 'countdown';
       remaining = Math.max(0, remaining - 1);
     }
     tick(); setInterval(tick, 1000);
@@ -101,7 +108,7 @@
     }
     reanchor(); setInterval(reanchor, 5000);
 
-    // ---- snapshot push via WS (Step 7) ----
+    // WS snapshot push
     let ws;
     function connectWs() {
       const proto = location.protocol === 'https:' ? 'wss' : 'ws';
@@ -121,22 +128,20 @@
       }, 1500);
     });
 
-    // ---- submit (Step 8) ----
+    // submit
     document.getElementById('run').addEventListener('click', async () => {
       const result = document.getElementById('result');
-      result.style.color = 'var(--fg-dim)';
-      result.textContent = 'Running test cases…';
+      result.style.color = 'var(--mute)';
+      result.textContent = '⟳ running test cases…';
       const r = await fetch('/api/sessions/' + SID + '/submit', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          language: langSel.value, source_code: editor.getValue()
-        }),
+        body: JSON.stringify({ language: langSel.value, source_code: editor.getValue() }),
       });
       const data = await r.json();
       if (data.error) {
-        result.style.color = 'var(--danger)';
-        result.textContent = 'Error: ' + data.error;
+        result.style.color = '#f1a99c';
+        result.textContent = '✗ ' + data.error;
         return;
       }
       const sid = data.submission_id;
@@ -147,19 +152,20 @@
         const d2 = await r2.json();
         if (d2.state !== 'pending') {
           const ok = d2.verdict === 'accepted';
-          result.style.color = ok ? 'var(--success)' : 'var(--danger)';
+          const mark = ok ? '✓' : '✗';
+          result.style.color = ok ? '#a3c181' : '#f1a99c';
           result.innerHTML =
-            '<strong>' + (d2.verdict || d2.state) + '</strong>'
-            + (d2.stdout ? '\n\nstdout:\n' + d2.stdout : '')
-            + (d2.stderr ? '\n\nstderr:\n' + d2.stderr : '');
+            '<strong>' + mark + ' ' + (d2.verdict || d2.state).toUpperCase() + '</strong>'
+            + (d2.stdout ? '\n\n— stdout —\n' + d2.stdout : '')
+            + (d2.stderr ? '\n\n— stderr —\n' + d2.stderr : '');
           return;
         }
       }
-      result.style.color = 'var(--warning)';
-      result.textContent = 'Timed out waiting for verdict (>30s).';
+      result.style.color = '#f1c378';
+      result.textContent = '⌛ timed out waiting for verdict (>30s)';
     });
 
-    // ---- anti-cheat events (Step 9) ----
+    // anti-cheat events
     function logEvent(type, extra={}) {
       fetch('/api/sessions/' + SID + '/events', {
         method: 'POST',
@@ -173,14 +179,14 @@
     editor.onDidPaste(() => logEvent('paste'));
 
     document.getElementById('problem-statement').innerHTML = `
-      <p style="color: var(--fg-dim);">
-        Write a solution for <code>{{ session.problem_slug }}</code>.
-        Your interviewer briefed you on the requirements.
-      </p>
-      <p style="color: var(--fg-dim); font-size: 12px;">
-        (A future iteration will render the full markdown statement here
-        from the problem database.)
-      </p>
+      <h2>Specification</h2>
+      <p>Implement a solution for <code>{{ session.problem_slug }}</code>.
+      Your interviewer briefed you on requirements and time constraints
+      before the session began.</p>
+      <h2>Notes</h2>
+      <p>Read from <code>stdin</code> and print to <code>stdout</code>.
+      Your code runs in an isolated sandbox; multiple test cases are evaluated.
+      Submit when ready — partial credit is not given.</p>
     `;
   });
 </script>
