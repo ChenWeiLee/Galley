@@ -1,0 +1,29 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>{% block title %}interview-judge{% endblock %}</title>
+  <link rel="stylesheet" href="{% static 'css/app.css' %}">
+  {% block head %}{% endblock %}
+</head>
+<body>
+  {% block topnav %}
+  <nav class="topnav">
+    <span class="topnav-brand"><span class="topnav-brand-dot"></span>interview-judge</span>
+    {% if user.is_authenticated and user.is_staff %}
+      <span class="topnav-links">
+        <a href="{% url 'interviewer:dashboard' %}">Dashboard</a>
+        <a href="/admin/interviewer/problem/">Problems</a>
+      </span>
+      <span class="topnav-right">
+        <span class="topnav-user">{{ user.username }}</span>
+        <a href="/admin/logout/" class="btn btn-ghost btn-sm">Sign out</a>
+      </span>
+    {% endif %}
+  </nav>
+  {% endblock %}
+  {% block body %}{% endblock %}
+</body>
+</html>

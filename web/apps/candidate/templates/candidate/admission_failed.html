@@ -1,20 +1,36 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-  <meta charset="utf-8">
-  <title>Cannot enter — interview-judge</title>
-  <style>
-    body { font-family: -apple-system, sans-serif; max-width: 560px; margin: 4rem auto;
-           padding: 0 1rem; color: #333; }
-    h1 { color: #b0001f; }
-    code { background: #f5f5f5; padding: 0.1rem 0.3rem; border-radius: 3px; }
-  </style>
-</head>
-<body>
-  <h1>Cannot enter the interview</h1>
-  <p>Reason: <code>{{ reason }}</code></p>
-  <p>If you closed the tab and came back via the original link, that link is
-     single-use and is now consumed. Please ask your interviewer to mint a
-     re-entry link from their dashboard.</p>
-</body>
-</html>
+{% extends "base.html" %}
+{% block title %}Cannot enter — interview-judge{% endblock %}
+
+{% block topnav %}{% endblock %}
+
+{% block body %}
+<div class="failure-page">
+  <div class="failure-card">
+    <div class="failure-icon">✕</div>
+    <h1 style="margin-bottom: var(--s-2);">Cannot enter the interview</h1>
+    <p style="margin-bottom: var(--s-4);">
+      {% if reason == "no_cookie" %}
+        Your session has expired or this browser doesn't have a valid session.
+      {% elif reason == "session_missing" %}
+        We couldn't find this interview session.
+      {% elif reason == "session_already_finished" %}
+        This interview has already ended.
+      {% elif reason == "time_up" %}
+        Time's up — the interview has ended. Your answer was saved.
+      {% else %}
+        The link you used is no longer valid.
+      {% endif %}
+    </p>
+    <p style="margin-bottom: var(--s-3);">
+      <span class="failure-reason">{{ reason }}</span>
+    </p>
+    {% if reason != "time_up" %}
+    <p>
+      If you closed the tab and clicked the original link again, that link is
+      single-use and is now consumed. Please ask your interviewer to mint a
+      re-entry link from their dashboard.
+    </p>
+    {% endif %}
+  </div>
+</div>
+{% endblock %}

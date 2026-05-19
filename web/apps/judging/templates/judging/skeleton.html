@@ -1,123 +1,123 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-  <meta charset="utf-8">
-  <title>{{ problem.title }} — interview-judge</title>
-  <style>
-    body { font-family: -apple-system, sans-serif; margin: 0; display: grid;
-           grid-template-columns: 1fr 1fr; height: 100vh; }
-    #left { padding: 1rem 1.5rem; overflow: auto; border-right: 1px solid #ddd; }
-    #right { display: flex; flex-direction: column; }
-    #editor { flex: 1; }
-    #toolbar { padding: 0.5rem; border-bottom: 1px solid #ddd; display: flex; gap: 0.5rem;
-               align-items: center; background: #fafafa; }
-    #result { padding: 1rem; border-top: 1px solid #ddd; height: 200px; overflow: auto;
-              background: #f7f7f7; font-family: ui-monospace, SFMono-Regular, monospace; }
-    button { padding: 0.4rem 0.8rem; font-size: 0.95rem; cursor: pointer; }
-    .verdict-accepted { color: #0a7c2f; font-weight: bold; }
-    .verdict-other { color: #b0001f; font-weight: bold; }
-    select { padding: 0.3rem; }
-  </style>
-  <link rel="stylesheet" data-name="vs/editor/editor.main"
-        href="https://cdn.jsdelivr.net/npm/monaco-editor@0.46.0/min/vs/editor/editor.main.css">
-</head>
-<body>
-  <section id="left">
-    <h1>{{ problem.title }}</h1>
-    <pre>{{ problem.statement }}</pre>
-    <p><small>Walking skeleton (Step 3 / Patch #1 option a). Auth + countdown
-       come in Steps 5–6.</small></p>
-  </section>
+{% extends "base.html" %}
+{% block title %}{{ problem.title }} — interview-judge{% endblock %}
 
-  <section id="right">
-    <div id="toolbar">
-      <label>Language:
-        <select id="language">
-          {% for lang in problem.languages %}
-            <option value="{{ lang }}">{{ lang }}</option>
-          {% endfor %}
-        </select>
-      </label>
-      <button id="run">Run / Submit</button>
-      <span id="status"></span>
+{% block topnav %}{% endblock %}
+
+{% block head %}
+<link rel="stylesheet"
+      href="https://cdn.jsdelivr.net/npm/monaco-editor@0.46.0/min/vs/editor/editor.main.css">
+{% endblock %}
+
+{% block body %}
+<div class="split">
+  <aside class="split-left">
+    <div class="badge badge-soft" style="margin-bottom: var(--s-3);">
+      Walking skeleton · diagnostic
+    </div>
+    <h1>{{ problem.title }}</h1>
+    <div class="statement">
+      <pre style="white-space: pre-wrap;">{{ problem.statement }}</pre>
+    </div>
+  </aside>
+
+  <section class="split-right">
+    <div class="toolbar">
+      <select id="language">
+        {% for lang in problem.languages %}
+          <option value="{{ lang }}">{{ lang }}</option>
+        {% endfor %}
+      </select>
+      <div class="spacer"></div>
+      <span id="status" class="badge badge-soft" style="display:none;"></span>
+      <button id="run" class="btn">Run</button>
     </div>
     <div id="editor"></div>
-    <pre id="result">(no submission yet)</pre>
+    <div class="result-pane">
+      <h4>Result</h4>
+      <div id="result" style="color: var(--fg-dim);">(no submission yet)</div>
+    </div>
   </section>
+</div>
 
-  <script src="https://cdn.jsdelivr.net/npm/monaco-editor@0.46.0/min/vs/loader.js"></script>
-  <script>
-    const STARTERS = {
-      python: 'print(1)\n',
-      javascript: 'console.log(1);\n',
-    };
+<script src="https://cdn.jsdelivr.net/npm/monaco-editor@0.46.0/min/vs/loader.js"></script>
+<script>
+  const STARTERS = {
+    python: 'print(1)\n',
+    javascript: 'console.log(1);\n',
+  };
 
-    require.config({ paths: { vs: 'https://cdn.jsdelivr.net/npm/monaco-editor@0.46.0/min/vs' }});
-    require(['vs/editor/editor.main'], function () {
-      const langSel = document.getElementById('language');
-      const editor = monaco.editor.create(document.getElementById('editor'), {
-        value: STARTERS[langSel.value] || '',
-        language: langSel.value === 'javascript' ? 'javascript' : 'python',
-        automaticLayout: true,
-        minimap: { enabled: false },
-        fontSize: 14,
-      });
+  require.config({ paths: { vs: 'https://cdn.jsdelivr.net/npm/monaco-editor@0.46.0/min/vs' }});
+  require(['vs/editor/editor.main'], function () {
+    const langSel = document.getElementById('language');
+    const editor = monaco.editor.create(document.getElementById('editor'), {
+      value: STARTERS[langSel.value] || '',
+      language: langSel.value === 'javascript' ? 'javascript' : 'python',
+      theme: 'vs-dark',
+      automaticLayout: true,
+      minimap: { enabled: false },
+      fontSize: 14,
+      fontFamily: 'SF Mono, ui-monospace, monospace',
+      padding: { top: 12 },
+    });
 
-      langSel.addEventListener('change', () => {
-        const lang = langSel.value;
-        monaco.editor.setModelLanguage(editor.getModel(),
-          lang === 'javascript' ? 'javascript' : 'python');
-        if (!editor.getValue() || Object.values(STARTERS).includes(editor.getValue())) {
-          editor.setValue(STARTERS[lang] || '');
+    langSel.addEventListener('change', () => {
+      const lang = langSel.value;
+      monaco.editor.setModelLanguage(editor.getModel(),
+        lang === 'javascript' ? 'javascript' : 'python');
+      if (!editor.getValue() || Object.values(STARTERS).includes(editor.getValue())) {
+        editor.setValue(STARTERS[lang] || '');
+      }
+    });
+
+    document.getElementById('run').addEventListener('click', async () => {
+      const status = document.getElementById('status');
+      const result = document.getElementById('result');
+      status.style.display = ''; status.textContent = 'queued';
+      status.className = 'badge badge-pending';
+      result.style.color = 'var(--fg-dim)';
+      result.textContent = 'running…';
+      try {
+        const r = await fetch('/skeleton/submit', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ language: langSel.value,
+                                  source_code: editor.getValue() }),
+        });
+        const data = await r.json();
+        if (!data.id) {
+          status.className = 'badge badge-frozen'; status.textContent = 'failed';
+          result.style.color = 'var(--danger)';
+          result.textContent = 'submit error: ' + (data.error || 'unknown');
+          return;
         }
-      });
-
-      document.getElementById('run').addEventListener('click', async () => {
-        const status = document.getElementById('status');
-        const result = document.getElementById('result');
-        status.textContent = 'submitting…';
-        result.textContent = '(running)';
-        try {
-          const r = await fetch('/skeleton/submit', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({
-              language: langSel.value,
-              source_code: editor.getValue(),
-            }),
-          });
-          const data = await r.json();
-          if (!data.id) {
-            result.textContent = 'submit error: ' + (data.error || 'unknown');
-            status.textContent = '';
+        const start = Date.now();
+        while (Date.now() - start < 30000) {
+          await new Promise(r => setTimeout(r, 1000));
+          const sr = await fetch('/api/submissions/' + data.id);
+          const sd = await sr.json();
+          if (sd.state !== 'pending') {
+            const ok = sd.verdict === 'accepted';
+            status.className = 'badge badge-' + sd.verdict;
+            status.textContent = sd.verdict;
+            result.style.color = ok ? 'var(--success)' : 'var(--danger)';
+            result.innerHTML =
+              '<strong>' + sd.verdict + '</strong>'
+              + (sd.stdout ? '\n\nstdout:\n' + sd.stdout : '')
+              + (sd.stderr ? '\n\nstderr:\n' + sd.stderr : '')
+              + '\n\ntime: ' + (sd.time_ms ?? '-') + ' ms'
+              + '  memory: ' + (sd.memory_kb ?? '-') + ' KB';
             return;
           }
-          status.textContent = 'queued (id=' + data.id + ')';
-          // Poll every 1s until terminal.
-          const start = Date.now();
-          while (Date.now() - start < 30000) {
-            await new Promise(r => setTimeout(r, 1000));
-            const sr = await fetch('/api/submissions/' + data.id);
-            const sd = await sr.json();
-            if (sd.state !== 'pending') {
-              const cls = sd.verdict === 'accepted' ? 'verdict-accepted' : 'verdict-other';
-              result.innerHTML =
-                '<span class="' + cls + '">verdict: ' + sd.verdict + '</span>\n' +
-                'stdout: ' + (sd.stdout || '(empty)') + '\n' +
-                'stderr: ' + (sd.stderr || '(empty)') + '\n' +
-                'time_ms: ' + (sd.time_ms ?? '-') + '  memory_kb: ' + (sd.memory_kb ?? '-');
-              status.textContent = 'done';
-              return;
-            }
-          }
-          result.textContent = 'timed out waiting for verdict';
-          status.textContent = '';
-        } catch (e) {
-          result.textContent = 'fetch error: ' + e;
-          status.textContent = '';
         }
-      });
+        status.className = 'badge badge-frozen'; status.textContent = 'timeout';
+        result.style.color = 'var(--warning)';
+        result.textContent = 'timed out waiting for verdict (>30s)';
+      } catch (e) {
+        status.className = 'badge badge-frozen'; status.textContent = 'error';
+        result.style.color = 'var(--danger)';
+        result.textContent = 'fetch error: ' + e;
+      }
     });
-  </script>
-</body>
-</html>
+  });
+</script>
+{% endblock %}

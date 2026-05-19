@@ -1,77 +1,81 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-  <meta charset="utf-8">
-  <title>Observing {{ session.candidate_label }} — interview-judge</title>
-  <style>
-    body { font-family: -apple-system, sans-serif; margin: 0; height: 100vh;
-           display: grid; grid-template-rows: auto 1fr; }
-    header { padding: 0.6rem 1rem; background: #fafafa; border-bottom: 1px solid #ddd;
-             display: flex; gap: 1rem; align-items: center; }
-    #status { margin-left: auto; padding: 0.2rem 0.5rem; border-radius: 3px;
-              background: #e8f0fe; font-size: 0.85rem; }
-    #status.disconnected { background: #fce8e6; }
-    #editor { width: 100%; height: 100%; }
-  </style>
-  <link rel="stylesheet"
-        href="https://cdn.jsdelivr.net/npm/monaco-editor@0.46.0/min/vs/editor/editor.main.css">
-</head>
-<body>
-  <header>
-    <strong>Observing:</strong>
-    {{ session.candidate_label }} ·
-    <code>{{ session.problem_slug }}</code> ·
-    Session <code>{{ session.id }}</code>
-    <span id="status">connecting…</span>
-  </header>
-  <div id="editor"></div>
+{% extends "base.html" %}
+{% block title %}Observe — {{ session.candidate_label }}{% endblock %}
 
-  <script src="https://cdn.jsdelivr.net/npm/monaco-editor@0.46.0/min/vs/loader.js"></script>
-  <script>
-    const SID = "{{ session.id }}";
-    require.config({ paths: { vs: 'https://cdn.jsdelivr.net/npm/monaco-editor@0.46.0/min/vs' }});
-    require(['vs/editor/editor.main'], function () {
-      const editor = monaco.editor.create(document.getElementById('editor'), {
-        value: '// waiting for candidate snapshots…\n',
-        language: 'python',
-        readOnly: true,
-        automaticLayout: true,
-        minimap: { enabled: false },
-        fontSize: 14,
-      });
-      const status = document.getElementById('status');
+{% block head %}
+<link rel="stylesheet"
+      href="https://cdn.jsdelivr.net/npm/monaco-editor@0.46.0/min/vs/editor/editor.main.css">
+<style>
+  .observe-meta { display: flex; align-items: center; gap: var(--s-3);
+                  flex-wrap: wrap; }
+  .observe-meta .badge { font-size: 11px; }
+</style>
+{% endblock %}
 
-      let backoff = 1000;
-      function connect() {
-        const proto = location.protocol === 'https:' ? 'wss' : 'ws';
-        const ws = new WebSocket(`${proto}://${location.host}/ws/observe/${SID}/`);
-        ws.onopen = () => { status.textContent = 'live'; status.classList.remove('disconnected');
-                            backoff = 1000; };
-        ws.onclose = () => { status.textContent = 'disconnected — reconnecting…';
-                             status.classList.add('disconnected');
-                             setTimeout(connect, backoff);
-                             backoff = Math.min(backoff * 2, 8000); };
-        ws.onmessage = (ev) => {
-          const data = JSON.parse(ev.data);
-          if (data.type === 'snapshot') {
-            const lang = data.language || 'python';
-            if (editor.getModel().getLanguageId() !== lang) {
-              monaco.editor.setModelLanguage(editor.getModel(),
-                lang === 'javascript' ? 'javascript' : 'python');
-            }
-            // Preserve scroll position; setValue moves the cursor
-            const pos = editor.getScrollTop();
-            editor.setValue(data.code || '');
-            editor.setScrollTop(pos);
-          } else if (data.type === 'verdict') {
-            // Step 8 broadcasts verdict events; surface as a status flash
-            status.textContent = `verdict: ${data.verdict}`;
-            setTimeout(() => { status.textContent = 'live'; }, 5000);
-          }
-        };
-      }
-      connect();
+{% block body %}
+<div class="toolbar">
+  <strong>Observing</strong>
+  <div class="observe-meta">
+    <span>{{ session.candidate_label }}</span>
+    <span class="badge badge-soft">{{ session.problem_slug }}</span>
+    <code>{{ session.id }}</code>
+  </div>
+  <div class="spacer"></div>
+  <span id="ws-status" class="badge badge-pending">connecting</span>
+  <a href="{% url 'interviewer:review' session.id %}"
+     class="btn btn-ghost btn-sm">Review</a>
+</div>
+<div id="editor" style="height: calc(100vh - 52px - 44px); width: 100%;"></div>
+
+<script src="https://cdn.jsdelivr.net/npm/monaco-editor@0.46.0/min/vs/loader.js"></script>
+<script>
+  const SID = "{{ session.id }}";
+  require.config({ paths: { vs: 'https://cdn.jsdelivr.net/npm/monaco-editor@0.46.0/min/vs' }});
+  require(['vs/editor/editor.main'], function () {
+    const editor = monaco.editor.create(document.getElementById('editor'), {
+      value: '// waiting for candidate snapshots…\n',
+      language: 'python',
+      theme: 'vs-dark',
+      readOnly: true,
+      automaticLayout: true,
+      minimap: { enabled: false },
+      fontSize: 14,
+      fontFamily: 'SF Mono, ui-monospace, monospace',
     });
-  </script>
-</body>
-</html>
+    const status = document.getElementById('ws-status');
+    const setStatus = (text, cls) => {
+      status.textContent = text;
+      status.className = 'badge ' + cls;
+    };
+
+    let backoff = 1000;
+    function connect() {
+      const proto = location.protocol === 'https:' ? 'wss' : 'ws';
+      const ws = new WebSocket(`${proto}://${location.host}/ws/observe/${SID}/`);
+      ws.onopen = () => { setStatus('live', 'badge-active'); backoff = 1000; };
+      ws.onclose = () => {
+        setStatus('reconnecting…', 'badge-frozen');
+        setTimeout(connect, backoff);
+        backoff = Math.min(backoff * 2, 8000);
+      };
+      ws.onmessage = (ev) => {
+        const data = JSON.parse(ev.data);
+        if (data.type === 'snapshot') {
+          const lang = data.language || 'python';
+          if (editor.getModel().getLanguageId() !== lang) {
+            monaco.editor.setModelLanguage(editor.getModel(),
+              lang === 'javascript' ? 'javascript' : 'python');
+          }
+          const top = editor.getScrollTop();
+          editor.setValue(data.code || '');
+          editor.setScrollTop(top);
+        } else if (data.type === 'verdict') {
+          const cls = data.verdict === 'accepted' ? 'badge-active' : 'badge-frozen';
+          setStatus('verdict: ' + data.verdict, cls);
+          setTimeout(() => setStatus('live', 'badge-active'), 5000);
+        }
+      };
+    }
+    connect();
+  });
+</script>
+{% endblock %}

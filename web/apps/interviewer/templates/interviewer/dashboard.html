@@ -1,122 +1,149 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-  <meta charset="utf-8">
-  <title>Interviewer dashboard — interview-judge</title>
-  <style>
-    body { font-family: -apple-system, sans-serif; max-width: 960px; margin: 2rem auto;
-           padding: 0 1rem; }
-    h1 { margin-bottom: 0.2rem; }
-    table { width: 100%; border-collapse: collapse; margin-top: 1rem; }
-    th, td { text-align: left; padding: 0.5rem 0.6rem; border-bottom: 1px solid #eee; }
-    th { background: #fafafa; }
-    .card { padding: 1rem; border: 1px solid #ddd; border-radius: 6px; margin: 1rem 0; }
-    button { padding: 0.4rem 0.7rem; cursor: pointer; }
-    .url-box { font-family: ui-monospace, SFMono-Regular, monospace; background: #f5f5f5;
-               padding: 0.4rem 0.6rem; word-break: break-all; }
-    .state-pending { color: #888; }
-    .state-active { color: #0a7c2f; font-weight: 600; }
-    .state-frozen { color: #b0001f; }
-  </style>
-</head>
-<body>
-  <h1>Interviewer dashboard</h1>
-  <small>{{ user.username }}</small>
+{% extends "base.html" %}
+{% block title %}Dashboard — interview-judge{% endblock %}
 
-  <div class="card">
-    <h2>Create new session</h2>
-    <form id="create-form">
-      {% csrf_token %}
-      <p>
-        <label>Problem:
-          <select name="problem_slug" required>
-            <option value="">— pick one —</option>
-            {% for p in problems %}
-              <option value="{{ p.slug }}">{{ p.slug }} — {{ p.title }}</option>
-            {% endfor %}
-          </select>
-        </label>
-      </p>
-      <p>
-        <label>Candidate label:
-          <input name="candidate_label" placeholder="Alice / req-12345 / etc." required>
-        </label>
-      </p>
-      <p>
-        <label>Duration (minutes):
-          <input name="duration_minutes" type="number" value="60" min="1" max="240" required>
-        </label>
-      </p>
-      <button type="submit">Create + get token URL</button>
-    </form>
-    <div id="created-result" style="display:none; margin-top: 1rem;">
-      <strong>Send this URL to the candidate (single-use, valid 24h):</strong>
-      <div class="url-box" id="created-url"></div>
+{% block body %}
+<div class="page">
+  <div class="page-header">
+    <div>
+      <h1>Dashboard</h1>
+      <div class="subtitle">Start a new interview or review past sessions.</div>
     </div>
   </div>
 
-  <h2>Recent sessions</h2>
-  {% if sessions %}
-    <table>
-      <thead>
-        <tr><th>ID</th><th>Problem</th><th>Candidate</th>
-            <th>State</th><th>Started</th><th>Actions</th></tr>
-      </thead>
-      <tbody>
-        {% for s in sessions %}
+  <div class="card">
+    <div class="card-header">
+      <h2>New session</h2>
+    </div>
+    <form id="create-form">
+      {% csrf_token %}
+      <div class="form-grid">
+        <div class="form-row">
+          <label for="f-problem">Problem</label>
+          <select id="f-problem" name="problem_slug" required>
+            <option value="">— pick one —</option>
+            {% for p in problems %}
+              <option value="{{ p.slug }}">{{ p.title }}</option>
+            {% endfor %}
+          </select>
+        </div>
+        <div class="form-row">
+          <label for="f-candidate">Candidate label</label>
+          <input id="f-candidate" name="candidate_label"
+                 placeholder="Alice / req-12345" required>
+        </div>
+        <div class="form-row">
+          <label for="f-duration">Duration (minutes)</label>
+          <input id="f-duration" name="duration_minutes" type="number"
+                 value="60" min="1" max="240" required>
+        </div>
+        <div class="form-row" style="align-self: end;">
+          <button type="submit" class="btn">Create + get token URL</button>
+        </div>
+      </div>
+    </form>
+
+    <div id="created-result" style="display:none; margin-top: var(--s-4);">
+      <div class="note note-ok" style="margin-bottom: var(--s-3);">
+        Token URL is single-use, valid for 24h. Send this to the candidate now.
+      </div>
+      <div class="copy-row">
+        <div class="url-box" id="created-url"></div>
+        <button class="btn btn-ghost" id="copy-btn">Copy</button>
+      </div>
+    </div>
+  </div>
+
+  <div style="height: var(--s-5)"></div>
+
+  <div class="card">
+    <div class="card-header">
+      <h2>Recent sessions</h2>
+      <span class="badge badge-soft">{{ sessions|length }} total</span>
+    </div>
+    {% if sessions %}
+      <table class="tbl">
+        <thead>
           <tr>
-            <td><code>{{ s.id }}</code></td>
-            <td>{{ s.problem_slug }}</td>
-            <td>{{ s.candidate_label }}</td>
-            <td><span class="state-{{ s.state }}">{{ s.state }}</span></td>
-            <td>{{ s.started_at|default:"—" }}</td>
-            <td>
-              {% if s.state == 'active' %}
-                <a href="{% url 'interviewer:observe' s.id %}">observe</a> ·
-                <button data-reentry="{{ s.id }}">re-entry</button> ·
-              {% endif %}
-              <a href="{% url 'interviewer:review' s.id %}">review</a>
-            </td>
+            <th>Candidate</th>
+            <th>Problem</th>
+            <th>State</th>
+            <th>Started</th>
+            <th style="text-align:right">Actions</th>
           </tr>
-        {% endfor %}
-      </tbody>
-    </table>
-  {% else %}
-    <p>No sessions yet.</p>
-  {% endif %}
+        </thead>
+        <tbody>
+          {% for s in sessions %}
+            <tr>
+              <td>
+                <div>{{ s.candidate_label }}</div>
+                <code>{{ s.id }}</code>
+              </td>
+              <td>{{ s.problem_slug }}</td>
+              <td><span class="badge badge-{{ s.state }}">{{ s.state }}</span></td>
+              <td>{{ s.started_at|default:"—" }}</td>
+              <td style="text-align:right">
+                {% if s.state == 'active' %}
+                  <a href="{% url 'interviewer:observe' s.id %}"
+                     class="btn btn-ghost btn-sm">Observe</a>
+                  <button class="btn btn-ghost btn-sm" data-reentry="{{ s.id }}">
+                    Re-entry
+                  </button>
+                {% endif %}
+                <a href="{% url 'interviewer:review' s.id %}"
+                   class="btn btn-ghost btn-sm">Review</a>
+              </td>
+            </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    {% else %}
+      <div class="empty">
+        <div class="empty-title">No sessions yet</div>
+        <div>Create your first one above.</div>
+      </div>
+    {% endif %}
+  </div>
+</div>
 
-  <script>
-    function getCookie(name) {
-      const m = document.cookie.match(new RegExp('(?:^|; )' + name + '=([^;]*)'));
-      return m ? decodeURIComponent(m[1]) : '';
-    }
+<script>
+  function getCookie(n) {
+    const m = document.cookie.match(new RegExp('(?:^|; )' + n + '=([^;]*)'));
+    return m ? decodeURIComponent(m[1]) : '';
+  }
 
-    document.getElementById('create-form').addEventListener('submit', async (e) => {
-      e.preventDefault();
-      const fd = new FormData(e.target);
-      const r = await fetch("{% url 'interviewer:create_session' %}", {
+  document.getElementById('create-form').addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const fd = new FormData(e.target);
+    const r = await fetch("{% url 'interviewer:create_session' %}", {
+      method: 'POST',
+      headers: { 'X-CSRFToken': getCookie('csrftoken') },
+      body: fd,
+    });
+    const data = await r.json();
+    if (data.error) { alert(data.error); return; }
+    document.getElementById('created-result').style.display = '';
+    document.getElementById('created-url').textContent = data.token_url;
+  });
+
+  document.getElementById('copy-btn').addEventListener('click', async () => {
+    const url = document.getElementById('created-url').textContent;
+    await navigator.clipboard.writeText(url);
+    const b = document.getElementById('copy-btn');
+    const t = b.textContent; b.textContent = 'Copied';
+    setTimeout(() => { b.textContent = t; }, 1200);
+  });
+
+  document.querySelectorAll('button[data-reentry]').forEach(btn => {
+    btn.addEventListener('click', async () => {
+      const sid = btn.dataset.reentry;
+      const r = await fetch(`/dashboard/${sid}/reentry`, {
         method: 'POST',
         headers: { 'X-CSRFToken': getCookie('csrftoken') },
-        body: fd,
       });
       const data = await r.json();
       if (data.error) { alert(data.error); return; }
-      document.getElementById('created-result').style.display = 'block';
-      document.getElementById('created-url').textContent = data.token_url;
+      prompt('Re-entry URL (also single-use):', data.reentry_url);
     });
-
-    document.querySelectorAll('button[data-reentry]').forEach(btn => {
-      btn.addEventListener('click', async () => {
-        const sid = btn.dataset.reentry;
-        const r = await fetch(`/dashboard/${sid}/reentry`, {
-          method: 'POST',
-          headers: { 'X-CSRFToken': getCookie('csrftoken') },
-        });
-        const data = await r.json();
-        if (data.error) { alert(data.error); return; }
-        prompt('Send this re-entry URL to the candidate:', data.reentry_url);
-      });
-    });
-  </script>
-</body>
-</html>
+  });
+</script>
+{% endblock %}

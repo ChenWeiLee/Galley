@@ -1,80 +1,187 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-  <meta charset="utf-8">
-  <title>{{ session.candidate_label }} — interview</title>
-  <style>
-    body { font-family: -apple-system, sans-serif; margin: 0; display: grid;
-           grid-template-columns: 1fr 1fr; height: 100vh; }
-    #left { padding: 1rem 1.5rem; overflow: auto; border-right: 1px solid #ddd; }
-    #right { display: flex; flex-direction: column; }
-    #toolbar { padding: 0.5rem; border-bottom: 1px solid #ddd; display: flex;
-               gap: 0.5rem; align-items: center; background: #fafafa; }
-    #editor { flex: 1; }
-    #result { padding: 1rem; border-top: 1px solid #ddd; height: 200px; overflow: auto;
-              background: #f7f7f7; font-family: ui-monospace, SFMono-Regular, monospace; }
-    #countdown { margin-left: auto; font-variant-numeric: tabular-nums;
-                 font-weight: 600; padding: 0.3rem 0.6rem; background: #fff3cd;
-                 border-radius: 4px; }
-    #countdown.urgent { background: #f8d7da; color: #721c24; }
-  </style>
-</head>
-<body>
-  <section id="left">
-    <h1>Interview: {{ session.problem_slug }}</h1>
-    <p><small>Candidate: {{ session.candidate_label }} · Session: {{ session.id }}</small></p>
-    <div id="problem-statement">
-      <p>(Problem statement renders here once Step 7 wires the candidate page
-         to fetch problem markdown by slug. Walking-skeleton fallback:
-         <a href="/skeleton/hello-1">/skeleton/hello-1</a>.)</p>
+{% extends "base.html" %}
+{% block title %}Interview — {{ session.candidate_label }}{% endblock %}
+
+{% block topnav %}{% endblock %}
+
+{% block head %}
+<link rel="stylesheet"
+      href="https://cdn.jsdelivr.net/npm/monaco-editor@0.46.0/min/vs/editor/editor.main.css">
+{% endblock %}
+
+{% block body %}
+<div class="split">
+  <aside class="split-left">
+    <h1 style="margin-bottom: var(--s-1);">{{ session.problem_slug }}</h1>
+    <div style="color: var(--fg-dim); font-size: 12px; margin-bottom: var(--s-5);">
+      {{ session.candidate_label }} · session <code>{{ session.id }}</code>
+    </div>
+    <div class="statement" id="problem-statement">
+      <p style="color: var(--fg-dim);">Loading problem statement…</p>
+    </div>
+  </aside>
+
+  <section class="split-right">
+    <div class="toolbar">
+      <select id="language">
+        <option value="python">Python</option>
+        <option value="javascript">JavaScript</option>
+      </select>
+      <div class="spacer"></div>
+      <span id="countdown" class="countdown normal"
+            data-session-id="{{ session.id }}"
+            data-remaining="{{ remaining_seconds }}">--:--</span>
+      <button id="run" class="btn">Submit</button>
+    </div>
+    <div id="editor"></div>
+    <div class="result-pane">
+      <h4>Result</h4>
+      <div id="result" style="color: var(--fg-dim);">
+        Submit your code to run the test cases.
+      </div>
     </div>
   </section>
-  <section id="right">
-    <div id="toolbar">
-      <span>Language: <strong>python</strong></span>
-      <button id="run">Submit (placeholder — Step 8)</button>
-      <span id="countdown" data-session-id="{{ session.id }}"
-            data-remaining="{{ remaining_seconds }}">
-        --:--
-      </span>
-    </div>
-    <div id="editor">
-      <textarea style="width: 100%; height: 100%; font-family: monospace;
-                       font-size: 14px; border: none; padding: 0.8rem;"
-                placeholder="Step 7 will replace this textarea with Monaco."
-      ></textarea>
-    </div>
-    <pre id="result">(Step 8 wires real submission flow.)</pre>
-  </section>
-  <script>
-    // Patch #2 countdown — anchored to server-supplied deadline.
-    // Polls /api/sessions/<id>/remaining every 5s to re-sync (Plan §3.3).
-    (function () {
-      const el = document.getElementById('countdown');
-      const sid = el.dataset.sessionId;
-      let remaining = parseInt(el.dataset.remaining, 10) || 0;
-      function fmt(s) {
-        if (s < 0) s = 0;
-        const m = Math.floor(s / 60), r = s % 60;
-        return String(m).padStart(2, '0') + ':' + String(r).padStart(2, '0');
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/monaco-editor@0.46.0/min/vs/loader.js"></script>
+<script>
+  const SID = "{{ session.id }}";
+  const STARTERS = {
+    python: '# write your solution here\n',
+    javascript: '// write your solution here\n',
+  };
+
+  require.config({ paths: { vs: 'https://cdn.jsdelivr.net/npm/monaco-editor@0.46.0/min/vs' }});
+  require(['vs/editor/editor.main'], function () {
+    const langSel = document.getElementById('language');
+    const editor = monaco.editor.create(document.getElementById('editor'), {
+      value: STARTERS[langSel.value],
+      language: langSel.value === 'javascript' ? 'javascript' : 'python',
+      theme: 'vs-dark',
+      automaticLayout: true,
+      minimap: { enabled: false },
+      fontSize: 14,
+      fontFamily: 'SF Mono, ui-monospace, monospace',
+      padding: { top: 12 },
+    });
+
+    langSel.addEventListener('change', () => {
+      const lang = langSel.value;
+      monaco.editor.setModelLanguage(editor.getModel(),
+        lang === 'javascript' ? 'javascript' : 'python');
+      const v = editor.getValue();
+      if (!v || Object.values(STARTERS).includes(v)) editor.setValue(STARTERS[lang]);
+    });
+
+    // ---- countdown (Patch #2: server-anchored) ----
+    const cd = document.getElementById('countdown');
+    let remaining = parseInt(cd.dataset.remaining, 10) || 0;
+    function fmt(s) {
+      if (s < 0) s = 0;
+      const m = Math.floor(s / 60), r = s % 60;
+      return String(m).padStart(2, '0') + ':' + String(r).padStart(2, '0');
+    }
+    function tick() {
+      cd.textContent = fmt(remaining);
+      cd.className = (remaining < 60 && remaining > 0)
+        ? 'countdown urgent' : 'countdown normal';
+      remaining = Math.max(0, remaining - 1);
+    }
+    tick(); setInterval(tick, 1000);
+    async function reanchor() {
+      try {
+        const r = await fetch('/api/sessions/' + SID + '/remaining');
+        if (!r.ok) return;
+        const d = await r.json();
+        if (typeof d.remaining_seconds === 'number') remaining = d.remaining_seconds;
+        if (d.state === 'frozen') {
+          editor.updateOptions({ readOnly: true });
+          document.getElementById('run').disabled = true;
+        }
+      } catch (e) {}
+    }
+    reanchor(); setInterval(reanchor, 5000);
+
+    // ---- snapshot push via WS (Step 7) ----
+    let ws;
+    function connectWs() {
+      const proto = location.protocol === 'https:' ? 'wss' : 'ws';
+      ws = new WebSocket(`${proto}://${location.host}/ws/candidate/${SID}/`);
+      ws.onclose = () => setTimeout(connectWs, 2000);
+    }
+    connectWs();
+    let snapTimer;
+    editor.onDidChangeModelContent(() => {
+      clearTimeout(snapTimer);
+      snapTimer = setTimeout(() => {
+        if (ws && ws.readyState === 1) {
+          ws.send(JSON.stringify({
+            type: 'snapshot', code: editor.getValue(), language: langSel.value
+          }));
+        }
+      }, 1500);
+    });
+
+    // ---- submit (Step 8) ----
+    document.getElementById('run').addEventListener('click', async () => {
+      const result = document.getElementById('result');
+      result.style.color = 'var(--fg-dim)';
+      result.textContent = 'Running test cases…';
+      const r = await fetch('/api/sessions/' + SID + '/submit', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          language: langSel.value, source_code: editor.getValue()
+        }),
+      });
+      const data = await r.json();
+      if (data.error) {
+        result.style.color = 'var(--danger)';
+        result.textContent = 'Error: ' + data.error;
+        return;
       }
-      function tick() {
-        el.textContent = fmt(remaining);
-        if (remaining < 60) el.classList.add('urgent'); else el.classList.remove('urgent');
-        remaining = Math.max(0, remaining - 1);
+      const sid = data.submission_id;
+      const start = Date.now();
+      while (Date.now() - start < 30000) {
+        await new Promise(r => setTimeout(r, 1000));
+        const r2 = await fetch('/api/submissions/' + sid);
+        const d2 = await r2.json();
+        if (d2.state !== 'pending') {
+          const ok = d2.verdict === 'accepted';
+          result.style.color = ok ? 'var(--success)' : 'var(--danger)';
+          result.innerHTML =
+            '<strong>' + (d2.verdict || d2.state) + '</strong>'
+            + (d2.stdout ? '\n\nstdout:\n' + d2.stdout : '')
+            + (d2.stderr ? '\n\nstderr:\n' + d2.stderr : '');
+          return;
+        }
       }
-      tick(); setInterval(tick, 1000);
-      async function reanchor() {
-        try {
-          const r = await fetch('/api/sessions/' + sid + '/remaining');
-          if (!r.ok) return;
-          const d = await r.json();
-          if (typeof d.remaining_seconds === 'number') remaining = d.remaining_seconds;
-          if (d.state === 'frozen') document.getElementById('run').disabled = true;
-        } catch (e) {}
-      }
-      reanchor(); setInterval(reanchor, 5000);
-    })();
-  </script>
-</body>
-</html>
+      result.style.color = 'var(--warning)';
+      result.textContent = 'Timed out waiting for verdict (>30s).';
+    });
+
+    // ---- anti-cheat events (Step 9) ----
+    function logEvent(type, extra={}) {
+      fetch('/api/sessions/' + SID + '/events', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ type, ...extra }),
+      }).catch(() => {});
+    }
+    document.addEventListener('visibilitychange', () =>
+      logEvent('visibility_change', { meta: { hidden: document.hidden } }));
+    window.addEventListener('blur', () => logEvent('blur'));
+    editor.onDidPaste(() => logEvent('paste'));
+
+    document.getElementById('problem-statement').innerHTML = `
+      <p style="color: var(--fg-dim);">
+        Write a solution for <code>{{ session.problem_slug }}</code>.
+        Your interviewer briefed you on the requirements.
+      </p>
+      <p style="color: var(--fg-dim); font-size: 12px;">
+        (A future iteration will render the full markdown statement here
+        from the problem database.)
+      </p>
+    `;
+  });
+</script>
+{% endblock %}
