@@ -15,6 +15,9 @@ htmlcov/
 *.sqlite3
 *.db
 
+# collectstatic build artifact — not source
+web/staticfiles/
+
 .DS_Store
 .idea/
 .vscode/
