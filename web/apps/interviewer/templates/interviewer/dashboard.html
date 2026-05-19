@@ -1,62 +1,61 @@
 {% extends "base.html" %}
-{% block title %}Dashboard — interview-judge{% endblock %}
+{% load i18n %}
+{% block title %}{% trans "Dashboard" %} — interview-judge{% endblock %}
 
 {% block body %}
 <div class="page">
   <div class="page-eyebrow">
-    <span class="label">§ 01 — DASHBOARD</span>
-    <span class="label label-mute">{{ user.username|upper }} EDITION</span>
+    <span class="label">§ 01 — {% trans "DASHBOARD" %}</span>
+    <span class="label label-mute">{{ user.username|upper }} {% trans "EDITION" %}</span>
   </div>
-  <h1 class="page-title">A live <em>ledger</em> of coding interviews.</h1>
+  <h1 class="page-title">{% blocktrans %}A live <em>ledger</em> of coding interviews.{% endblocktrans %}</h1>
   <p class="page-deck">
-    Issue a single-use token URL to a candidate, observe the live editor in
-    real time, and review submissions, anti-cheat events, and snapshot
-    replays after the session ends.
+    {% blocktrans %}Issue a single-use token URL to a candidate, observe the live editor in real time, and review submissions, anti-cheat events, and snapshot replays after the session ends.{% endblocktrans %}
   </p>
   <div class="page-deck-rule"></div>
 
   <section class="section">
     <div class="section-head">
       <div class="section-no">§ 02</div>
-      <div class="section-title">Open a new interview</div>
-      <div class="section-meta">FORM</div>
+      <div class="section-title">{% trans "Open a new interview" %}</div>
+      <div class="section-meta">{% trans "FORM" %}</div>
     </div>
     <div class="section-body">
       <form id="create-form">
         {% csrf_token %}
         <div class="form-grid">
           <div class="form-row">
-            <label for="f-problem">PROBLEM</label>
+            <label for="f-problem">{% trans "PROBLEM" %}</label>
             <select id="f-problem" name="problem_slug" required>
-              <option value="">— select —</option>
+              <option value="">— {% trans "select" %} —</option>
               {% for p in problems %}
                 <option value="{{ p.slug }}">{{ p.title }}</option>
               {% endfor %}
             </select>
           </div>
           <div class="form-row">
-            <label for="f-candidate">CANDIDATE LABEL</label>
+            <label for="f-candidate">{% trans "CANDIDATE LABEL" %}</label>
             <input id="f-candidate" name="candidate_label"
-                   placeholder="Alice · req-12345 · etc." required>
+                   placeholder="{% trans 'Alice · req-12345 · etc.' %}" required>
           </div>
           <div class="form-row">
-            <label for="f-duration">DURATION (MIN)</label>
+            <label for="f-duration">{% trans "DURATION (MIN)" %}</label>
             <input id="f-duration" name="duration_minutes" type="number"
                    value="60" min="1" max="240" required>
           </div>
           <div class="form-row" style="justify-content: end;">
-            <button type="submit" class="btn">Issue token URL ⤳</button>
+            <button type="submit" class="btn">{% trans "Issue token URL ⤳" %}</button>
           </div>
         </div>
       </form>
 
       <div id="created-result" style="display:none; margin-top: var(--s-5);">
         <div class="note note-vermillion" style="margin-bottom: var(--s-3);">
-          ¶ Single-use, expires in 24 h. Send to candidate now.
+          {% blocktrans %}¶ Single-use, expires in 24 h. Send to candidate now.{% endblocktrans %}
         </div>
         <div class="copy-row">
           <div class="url-block" id="created-url"></div>
-          <button class="btn btn-ghost" id="copy-btn">Copy</button>
+          <button class="btn btn-ghost" id="copy-btn">{% trans "Copy" %}</button>
         </div>
       </div>
     </div>
@@ -65,19 +64,19 @@
   <section class="section">
     <div class="section-head">
       <div class="section-no">§ 03</div>
-      <div class="section-title">Recent sessions</div>
-      <div class="section-meta">{{ sessions|length }} TOTAL</div>
+      <div class="section-title">{% trans "Recent sessions" %}</div>
+      <div class="section-meta">{% blocktrans count counter=sessions|length %}{{ counter }} TOTAL{% plural %}{{ counter }} TOTAL{% endblocktrans %}</div>
     </div>
     <div class="section-body">
       {% if sessions %}
         <table class="tbl">
           <thead>
             <tr>
-              <th>Candidate</th>
-              <th>Problem</th>
-              <th>State</th>
-              <th>Started</th>
-              <th class="col-right">Actions</th>
+              <th>{% trans "Candidate" %}</th>
+              <th>{% trans "Problem" %}</th>
+              <th>{% trans "State" %}</th>
+              <th>{% trans "Started" %}</th>
+              <th class="col-right">{% trans "Actions" %}</th>
             </tr>
           </thead>
           <tbody>
@@ -93,12 +92,12 @@
                 <td class="col-right">
                   {% if s.state == 'active' %}
                     <a href="{% url 'interviewer:observe' s.id %}"
-                       class="btn btn-ghost btn-sm">observe</a>
+                       class="btn btn-ghost btn-sm">{% trans "observe" %}</a>
                     <button class="btn btn-ghost btn-sm"
-                            data-reentry="{{ s.id }}">re-entry</button>
+                            data-reentry="{{ s.id }}">{% trans "re-entry" %}</button>
                   {% endif %}
                   <a href="{% url 'interviewer:review' s.id %}"
-                     class="btn btn-ghost btn-sm">review</a>
+                     class="btn btn-ghost btn-sm">{% trans "review" %}</a>
                 </td>
               </tr>
             {% endfor %}
@@ -106,20 +105,25 @@
         </table>
       {% else %}
         <div class="empty">
-          <div class="empty-title">No sessions yet.</div>
-          <div>Issue your first token URL above.</div>
+          <div class="empty-title">{% trans "No sessions yet." %}</div>
+          <div>{% trans "Issue your first token URL above." %}</div>
         </div>
       {% endif %}
     </div>
   </section>
 
   <div class="colophon">
-    <span>INTERVIEW–JUDGE · INTERNAL EDITION</span>
-    <span>SELF-HOST · NO TELEMETRY · PG_DUMP NIGHTLY</span>
+    <span>{% trans "INTERVIEW–JUDGE · INTERNAL EDITION" %}</span>
+    <span>{% trans "SELF-HOST · NO TELEMETRY · PG_DUMP NIGHTLY" %}</span>
   </div>
 </div>
 
 <script>
+  const T = {
+    copied: '{% trans "Copied ✓" %}',
+    reentry_prompt: '{% trans "Re-entry URL (single-use):" %}',
+  };
+
   function getCookie(n) {
     const m = document.cookie.match(new RegExp('(?:^|; )' + n + '=([^;]*)'));
     return m ? decodeURIComponent(m[1]) : '';
@@ -143,7 +147,7 @@
     const url = document.getElementById('created-url').textContent;
     await navigator.clipboard.writeText(url);
     const b = document.getElementById('copy-btn');
-    const t = b.textContent; b.textContent = 'Copied ✓';
+    const t = b.textContent; b.textContent = T.copied;
     setTimeout(() => { b.textContent = t; }, 1200);
   });
 
@@ -156,7 +160,7 @@
       });
       const data = await r.json();
       if (data.error) { alert(data.error); return; }
-      prompt('Re-entry URL (single-use):', data.reentry_url);
+      prompt(T.reentry_prompt, data.reentry_url);
     });
   });
 </script>

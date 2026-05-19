@@ -1,6 +1,6 @@
-{% load static %}
+{% load static i18n %}
 <!DOCTYPE html>
-<html lang="en">
+<html lang="{{ LANGUAGE_CODE }}">
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
@@ -15,18 +15,33 @@
   <header class="masthead">
     <div class="masthead-bar">
       <span class="masthead-brand">interview&#8202;⁄&#8202;<em>judge</em></span>
-      <span class="masthead-vol">VOL. 01 — INTERNAL EDITION</span>
+      <span class="masthead-vol">{% trans "VOL. 01 — INTERNAL EDITION" %}</span>
       {% if user.is_authenticated and user.is_staff %}
         <nav class="masthead-nav">
-          <a href="{% url 'interviewer:dashboard' %}">dashboard</a>
-          <a href="/admin/interviewer/problem/">problems</a>
-          <a href="/admin/">admin</a>
+          <a href="{% url 'interviewer:dashboard' %}">{% trans "dashboard" %}</a>
+          <a href="/admin/interviewer/problem/">{% trans "problems" %}</a>
+          <a href="/admin/">{% trans "admin" %}</a>
         </nav>
-        <div class="masthead-right">
-          <span class="masthead-user">{{ user.username }}</span>
-          <a href="/admin/logout/" class="btn btn-ghost btn-sm">sign out</a>
-        </div>
       {% endif %}
+      <div class="masthead-right">
+        {# language switcher — works on every page including the public failure page #}
+        <form action="{% url 'set_language' %}" method="post" class="lang-toggle">
+          {% csrf_token %}
+          <input type="hidden" name="next" value="{{ request.path }}">
+          {% get_current_language as CUR %}
+          {% for code, label in LANGUAGES %}
+            <button type="submit" name="language" value="{{ code }}"
+                    class="lang-btn {% if code == CUR %}is-active{% endif %}"
+                    aria-label="{{ label }}">
+              {% if code == "en" %}EN{% else %}中{% endif %}
+            </button>
+          {% endfor %}
+        </form>
+        {% if user.is_authenticated and user.is_staff %}
+          <span class="masthead-user">{{ user.username }}</span>
+          <a href="/admin/logout/" class="btn btn-ghost btn-sm">{% trans "sign out" %}</a>
+        {% endif %}
+      </div>
     </div>
   </header>
   {% endblock %}

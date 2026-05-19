@@ -1,16 +1,16 @@
 {% extends "base.html" %}
-{% block title %}Review — {{ session.candidate_label }}{% endblock %}
+{% load i18n %}
+{% block title %}{% trans "Review" %} — {{ session.candidate_label }}{% endblock %}
 
 {% block body %}
 <div class="page page-wide">
   <div class="page-eyebrow">
-    <span class="label">⁂ FILE — REVIEW</span>
-    <span class="label label-mute">SESSION {{ session.id }}</span>
+    <span class="label">⁂ {% trans "FILE — REVIEW" %}</span>
+    <span class="label label-mute">{% trans "SESSION" %} {{ session.id }}</span>
   </div>
-  <h1 class="page-title">Review of <em>{{ session.candidate_label }}</em></h1>
+  <h1 class="page-title">{% blocktrans with name=session.candidate_label %}Review of <em>{{ name }}</em>{% endblocktrans %}</h1>
   <p class="page-deck">
-    Final submissions, anti-cheat timeline, and snapshot replay for the
-    <code>{{ session.problem_slug }}</code> interview.
+    {% blocktrans with slug=session.problem_slug %}Final submissions, anti-cheat timeline, and snapshot replay for the <code>{{ slug }}</code> interview.{% endblocktrans %}
   </p>
 
   <dl style="display: grid; grid-template-columns: 1fr 1fr;
@@ -19,29 +19,28 @@
              border-top: 1px solid var(--rule-strong);
              border-bottom: 1px solid var(--rule-strong);">
     <div class="leader-row">
-      <dt>State</dt><span class="leader"></span>
+      <dt>{% trans "State" %}</dt><span class="leader"></span>
       <dd><span class="tag tag-{{ session.state }}">{{ session.state }}</span></dd>
     </div>
     <div class="leader-row">
-      <dt>Started</dt><span class="leader"></span>
+      <dt>{% trans "Started" %}</dt><span class="leader"></span>
       <dd>{{ session.started_at|default:"—" }}</dd>
     </div>
     <div class="leader-row">
-      <dt>Problem</dt><span class="leader"></span>
+      <dt>{% trans "Problem" %}</dt><span class="leader"></span>
       <dd>{{ session.problem_slug }}</dd>
     </div>
     <div class="leader-row">
-      <dt>Deadline</dt><span class="leader"></span>
+      <dt>{% trans "Deadline" %}</dt><span class="leader"></span>
       <dd>{{ session.deadline_utc|default:"—" }}</dd>
     </div>
   </dl>
 
-  <!-- § 01 — SUBMISSIONS -->
   <section class="section">
     <div class="section-head">
       <div class="section-no">§ 01</div>
-      <div class="section-title">Submissions</div>
-      <div class="section-meta">{{ submissions|length }} TOTAL</div>
+      <div class="section-title">{% trans "Submissions" %}</div>
+      <div class="section-meta">{% blocktrans count counter=submissions|length %}{{ counter }} TOTAL{% plural %}{{ counter }} TOTAL{% endblocktrans %}</div>
     </div>
     <div class="section-body">
       {% if submissions %}
@@ -51,12 +50,12 @@
               <span class="tag tag-{{ s.verdict|default:'pending' }}">
                 {{ s.verdict|default:s.state }}
               </span>
-              {% if s.forced %}<span class="tag tag-soft">forced</span>{% endif %}
+              {% if s.forced %}<span class="tag tag-soft">{% trans "forced" %}</span>{% endif %}
               <span class="sub-row-id">{{ s.id }}</span>
               <span class="sub-row-time">{{ s.submitted_at|date:"H:i:s" }}</span>
             </div>
             <details>
-              <summary>view source · {{ s.language }}</summary>
+              <summary>{% trans "view source" %} · {{ s.language }}</summary>
               <pre style="margin-top: var(--s-2);">{{ s.source_code }}</pre>
             </details>
             {% if s.stderr %}
@@ -70,25 +69,28 @@
         {% endfor %}
       {% else %}
         <div class="empty">
-          <div class="empty-title">No submissions filed.</div>
-          <div>The candidate did not submit during this session.</div>
+          <div class="empty-title">{% trans "No submissions filed." %}</div>
+          <div>{% trans "The candidate did not submit during this session." %}</div>
         </div>
       {% endif %}
     </div>
   </section>
 
-  <!-- § 02 — ANTI-CHEAT TIMELINE -->
   <section class="section">
     <div class="section-head">
       <div class="section-no">§ 02</div>
-      <div class="section-title">Anti-cheat events</div>
-      <div class="section-meta">{{ events|length }} RECORDED</div>
+      <div class="section-title">{% trans "Anti-cheat events" %}</div>
+      <div class="section-meta">{% blocktrans count counter=events|length %}{{ counter }} RECORDED{% plural %}{{ counter }} RECORDED{% endblocktrans %}</div>
     </div>
     <div class="section-body">
       {% if events %}
         <table class="tbl">
           <thead>
-            <tr><th style="width: 100px">Time</th><th>Event</th><th>Detail</th></tr>
+            <tr>
+              <th style="width: 100px">{% trans "Time" %}</th>
+              <th>{% trans "Event" %}</th>
+              <th>{% trans "Detail" %}</th>
+            </tr>
           </thead>
           <tbody>
             {% for e in events %}
@@ -96,7 +98,7 @@
                 <td><code>{{ e.captured_at|date:"H:i:s" }}</code></td>
                 <td><span class="tag tag-soft">{{ e.event_type }}</span></td>
                 <td style="color: var(--mute); font-size: 12px;">
-                  {% if e.byte_len %}{{ e.byte_len }} bytes{% endif %}
+                  {% if e.byte_len %}{{ e.byte_len }} {% trans "bytes" %}{% endif %}
                   {% if e.meta %}<code>{{ e.meta }}</code>{% endif %}
                 </td>
               </tr>
@@ -105,19 +107,18 @@
         </table>
       {% else %}
         <div class="empty">
-          <div class="empty-title">Clean record.</div>
-          <div>No visibility changes, pastes, or window blurs detected.</div>
+          <div class="empty-title">{% trans "Clean record." %}</div>
+          <div>{% trans "No visibility changes, pastes, or window blurs detected." %}</div>
         </div>
       {% endif %}
     </div>
   </section>
 
-  <!-- § 03 — SNAPSHOT REPLAY -->
   <section class="section">
     <div class="section-head">
       <div class="section-no">§ 03</div>
-      <div class="section-title">Snapshot replay</div>
-      <div class="section-meta">{{ snapshots|length }} FRAMES</div>
+      <div class="section-title">{% trans "Snapshot replay" %}</div>
+      <div class="section-meta">{% blocktrans count counter=snapshots|length %}{{ counter }} FRAMES{% plural %}{{ counter }} FRAMES{% endblocktrans %}</div>
     </div>
     <div class="section-body">
       {% if snapshots %}
@@ -131,7 +132,7 @@
                                        color: var(--mute);
                                        letter-spacing: 0.06em;">—</span>
         </div>
-        <pre id="snap-text" style="min-height: 240px;">(use the slider)</pre>
+        <pre id="snap-text" style="min-height: 240px;">{% trans "(use the slider)" %}</pre>
         <script id="snap-data" type="application/json">
           [{% for s in snapshots %}
             {"t": "{{ s.captured_at|date:'c' }}", "lang": "{{ s.language }}",
@@ -160,16 +161,16 @@
         </script>
       {% else %}
         <div class="empty">
-          <div class="empty-title">No snapshots captured.</div>
-          <div>The candidate did not type during this session.</div>
+          <div class="empty-title">{% trans "No snapshots captured." %}</div>
+          <div>{% trans "The candidate did not type during this session." %}</div>
         </div>
       {% endif %}
     </div>
   </section>
 
   <div class="colophon">
-    <span>FILED · {{ session.updated_at|date:"Y-m-d H:i" }}</span>
-    <span>INTERVIEW–JUDGE · INTERNAL EDITION</span>
+    <span>{% trans "FILED" %} · {{ session.updated_at|date:"Y-m-d H:i" }}</span>
+    <span>{% trans "INTERVIEW–JUDGE · INTERNAL EDITION" %}</span>
   </div>
 </div>
 {% endblock %}

@@ -1,5 +1,6 @@
 {% extends "base.html" %}
-{% block title %}Observe — {{ session.candidate_label }}{% endblock %}
+{% load i18n %}
+{% block title %}{% trans "Observe" %} — {{ session.candidate_label }}{% endblock %}
 {% block bodyclass %}stage{% endblock %}
 {% block masthead %}{% endblock %}
 
@@ -26,8 +27,7 @@
     padding: 3px 8px; border-radius: var(--r);
     transition: background .2s, color .2s;
   }
-  .ws-tag.live { background: var(--moss-soft); color: #b3d098;
-                 box-shadow: 0 0 8px rgba(74, 103, 57, 0.4); }
+  .ws-tag.live { background: var(--moss-soft); color: #b3d098; }
   .ws-tag.reconnecting { background: var(--mustard-soft); color: #f1c378; }
   .ws-tag.connecting { color: var(--mute); border: 1px solid var(--rule); }
   .ws-tag::before { content: '● '; }
@@ -44,7 +44,7 @@
 
 {% block body %}
 <div class="observe-bar">
-  <span class="label">⁂ OBSERVING</span>
+  <span class="label">⁂ {% trans "OBSERVING" %}</span>
   <span class="observe-meta">
     <b>{{ session.candidate_label }}</b>
     <span style="margin: 0 8px; color: var(--faint);">·</span>
@@ -53,14 +53,23 @@
     <code>{{ session.id }}</code>
   </span>
   <span style="flex: 1;"></span>
-  <span id="ws-status" class="ws-tag connecting">connecting</span>
-  <a href="{% url 'interviewer:review' session.id %}" class="observe-link">review →</a>
+  <span id="ws-status" class="ws-tag connecting">{% trans "connecting" %}</span>
+  <a href="{% url 'interviewer:review' session.id %}" class="observe-link">
+    {% trans "review →" %}
+  </a>
 </div>
 <div id="editor" style="height: calc(100vh - 52px); width: 100%;"></div>
 
+<script>
+  const T = {
+    live: '{% trans "live" %}',
+    reconnecting: '{% trans "reconnecting" %}',
+    verdict: '{% trans "verdict" %}',
+  };
+  const SID = "{{ session.id }}";
+</script>
 <script src="https://cdn.jsdelivr.net/npm/monaco-editor@0.46.0/min/vs/loader.js"></script>
 <script>
-  const SID = "{{ session.id }}";
   require.config({ paths: { vs: 'https://cdn.jsdelivr.net/npm/monaco-editor@0.46.0/min/vs' }});
   require(['vs/editor/editor.main'], function () {
     const editor = monaco.editor.create(document.getElementById('editor'), {
@@ -86,9 +95,9 @@
     function connect() {
       const proto = location.protocol === 'https:' ? 'wss' : 'ws';
       const ws = new WebSocket(`${proto}://${location.host}/ws/observe/${SID}/`);
-      ws.onopen = () => { setStatus('live', 'live'); backoff = 1000; };
+      ws.onopen = () => { setStatus(T.live, 'live'); backoff = 1000; };
       ws.onclose = () => {
-        setStatus('reconnecting', 'reconnecting');
+        setStatus(T.reconnecting, 'reconnecting');
         setTimeout(connect, backoff);
         backoff = Math.min(backoff * 2, 8000);
       };
@@ -104,9 +113,9 @@
           editor.setValue(data.code || '');
           editor.setScrollTop(top);
         } else if (data.type === 'verdict') {
-          setStatus('verdict · ' + data.verdict,
+          setStatus(T.verdict + ' · ' + data.verdict,
                     data.verdict === 'accepted' ? 'live' : 'reconnecting');
-          setTimeout(() => setStatus('live', 'live'), 5000);
+          setTimeout(() => setStatus(T.live, 'live'), 5000);
         }
       };
     }

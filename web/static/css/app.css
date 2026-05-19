@@ -79,9 +79,12 @@
 
 *, *::before, *::after { box-sizing: border-box; }
 
-html, body {
+html { background: var(--paper); }
+html:has(body.stage) { background: #14151a; }
+body {
   margin: 0;
   padding: 0;
+  min-height: 100vh;
   background: var(--paper);
   color: var(--ink);
   font-family: var(--mono);
@@ -92,6 +95,7 @@ html, body {
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
 }
+body.stage { background: #14151a; }
 
 a {
   color: var(--ink);
@@ -219,6 +223,44 @@ hr {
   color: var(--mute);
 }
 .masthead-user::before { content: '⌁ '; color: var(--vermillion); }
+
+/* language switcher */
+.lang-toggle {
+  display: inline-flex;
+  border: 1px solid var(--rule-strong);
+  border-radius: var(--r);
+  overflow: hidden;
+}
+.lang-btn {
+  background: transparent;
+  border: 0;
+  font-family: var(--mono);
+  font-size: 11px;
+  font-weight: 500;
+  letter-spacing: 0.1em;
+  color: var(--mute);
+  padding: 4px 9px;
+  cursor: pointer;
+  transition: background .15s, color .15s;
+}
+.lang-btn + .lang-btn { border-left: 1px solid var(--rule-strong); }
+.lang-btn:hover { color: var(--ink); }
+.lang-btn.is-active { background: var(--ink); color: var(--paper); }
+.lang-btn.is-active:hover { background: var(--vermillion); color: #fff; }
+
+/* floating variant for candidate stage (no masthead) */
+.lang-toggle-floating {
+  position: fixed;
+  top: 14px;
+  right: 16px;
+  z-index: 50;
+  background: var(--card);
+  border-color: var(--rule);
+}
+.stage .lang-toggle-floating { background: #1c1d23; border-color: var(--rule); }
+.stage .lang-btn { color: var(--ink-2); }
+.stage .lang-btn:hover { color: var(--ink); }
+.stage .lang-btn.is-active { background: var(--vermillion); color: #fff; }
 
 /* ============================================================
    PAGE LAYOUT
@@ -603,9 +645,41 @@ input::placeholder { color: var(--faint); font-style: italic; }
   color: var(--mute);
   margin: var(--s-5) 0 var(--s-2);
 }
+.statement h3 {
+  font-family: var(--serif);
+  font-style: italic;
+  font-size: 15px;
+  color: var(--ink);
+  margin: var(--s-4) 0 var(--s-2);
+  font-variation-settings: 'opsz' 14, 'SOFT' 70, 'WONK' 1;
+}
 .statement p { margin: 0 0 var(--s-3); }
-.statement code { color: var(--vermillion); }
-.statement pre { background: var(--paper-2); border-left-color: var(--rule-strong); }
+.statement ul, .statement ol { margin: 0 0 var(--s-3); padding-left: var(--s-5); }
+.statement li { margin-bottom: 4px; }
+.statement strong { color: var(--ink); font-weight: 500; }
+.statement code {
+  color: var(--vermillion);
+  background: var(--paper-2);
+  padding: 1px 4px;
+  border-radius: var(--r);
+  font-size: 12px;
+}
+.stage .statement code { background: rgba(196, 56, 36, 0.12); }
+.statement pre {
+  background: var(--paper-2);
+  border-left-color: var(--rule-strong);
+  margin: var(--s-3) 0;
+}
+.statement pre code { background: transparent; padding: 0; color: var(--ink); }
+.statement table {
+  width: 100%; border-collapse: collapse; margin: var(--s-3) 0;
+  font-size: 12px;
+}
+.statement th, .statement td {
+  text-align: left; padding: 6px 10px;
+  border-bottom: 1px solid var(--rule);
+}
+.statement th { color: var(--mute); font-weight: 500; }
 
 /* coding toolbar */
 .work-bar {

@@ -1,4 +1,5 @@
 {% extends "base.html" %}
+{% load i18n %}
 {% block title %}{{ session.problem_slug }} — interview{% endblock %}
 {% block bodyclass %}stage{% endblock %}
 {% block masthead %}{% endblock %}
@@ -9,18 +10,30 @@
 {% endblock %}
 
 {% block body %}
+<form action="{% url 'set_language' %}" method="post" class="lang-toggle lang-toggle-floating">
+  {% csrf_token %}
+  <input type="hidden" name="next" value="{{ request.path }}">
+  {% get_current_language as CUR %}
+  {% for code, label in LANGUAGES %}
+    <button type="submit" name="language" value="{{ code }}"
+            class="lang-btn {% if code == CUR %}is-active{% endif %}"
+            aria-label="{{ label }}">
+      {% if code == "en" %}EN{% else %}中{% endif %}
+    </button>
+  {% endfor %}
+</form>
 <div class="stage-shell">
   <aside class="stage-brief">
     <div class="brief-eyebrow">
-      <span class="label">⁂ Brief</span>
-      <span class="label">SESSION {{ session.id }}</span>
+      <span class="label">⁂ {% trans "Brief" %}</span>
+      <span class="label">{% trans "SESSION" %} {{ session.id }}</span>
     </div>
-    <h1 class="brief-title">{{ session.problem_slug }}</h1>
+    <h1 class="brief-title">{{ problem.title|default:session.problem_slug }}</h1>
     <div class="brief-meta">
-      Candidate · <b>{{ session.candidate_label }}</b>
+      {% trans "Candidate" %} · <b>{{ session.candidate_label }}</b>
     </div>
     <div class="statement" id="problem-statement">
-      <p style="color: var(--mute);">Loading problem statement…</p>
+      {{ problem_html|safe }}
     </div>
   </aside>
 
@@ -31,29 +44,44 @@
         <option value="javascript">javascript</option>
       </select>
       <div class="spacer"></div>
+      <span class="hint">{% trans "⌘+Enter to submit" %}</span>
       <span id="countdown" class="countdown"
             data-session-id="{{ session.id }}"
             data-remaining="{{ remaining_seconds }}">--:--</span>
-      <button id="run" class="btn btn-vermillion">submit ▸</button>
+      <button id="run" class="btn btn-vermillion">{% trans "submit ▸" %}</button>
     </div>
     <div id="editor"></div>
     <div class="work-result">
-      <div class="work-result-head">⁂ Result</div>
+      <div class="work-result-head">⁂ {% trans "Result" %}</div>
       <div id="result" class="work-result-body" style="color: var(--mute);">
-        Press <code>submit</code> to run the test cases.
+        {% blocktrans %}Press <code>submit</code> (or <code>⌘+Enter</code>) to run the test cases.{% endblocktrans %}
       </div>
     </div>
   </section>
 </div>
 
-<script src="https://cdn.jsdelivr.net/npm/monaco-editor@0.46.0/min/vs/loader.js"></script>
+<style>
+  .hint { font-family: var(--mono); font-size: 10.5px;
+          letter-spacing: 0.1em; color: var(--mute); margin-right: 4px; }
+</style>
+
 <script>
+  const T = {
+    running: '{% trans "⟳ running test cases…" %}',
+    stdout: '{% trans "— stdout —" %}',
+    stderr: '{% trans "— stderr —" %}',
+    timeout: '{% trans "⌛ timed out waiting for verdict (>30s)" %}',
+  };
   const SID = "{{ session.id }}";
   const STARTERS = {
-    python: '# write your solution here\n',
-    javascript: '// write your solution here\n',
+    python: '# {% trans "write your solution here" %}\n',
+    javascript: '// {% trans "write your solution here" %}\n',
   };
 
+  // dummy script tag for Monaco loader below
+</script>
+<script src="https://cdn.jsdelivr.net/npm/monaco-editor@0.46.0/min/vs/loader.js"></script>
+<script>
   require.config({ paths: { vs: 'https://cdn.jsdelivr.net/npm/monaco-editor@0.46.0/min/vs' }});
   require(['vs/editor/editor.main'], function () {
     const langSel = document.getElementById('language');
@@ -79,7 +107,7 @@
       if (!v || Object.values(STARTERS).includes(v)) editor.setValue(STARTERS[lang]);
     });
 
-    // countdown (Patch #2: server-anchored)
+    // countdown
     const cd = document.getElementById('countdown');
     let remaining = parseInt(cd.dataset.remaining, 10) || 0;
     function fmt(s) {
@@ -128,11 +156,10 @@
       }, 1500);
     });
 
-    // submit
-    document.getElementById('run').addEventListener('click', async () => {
+    async function doSubmit() {
       const result = document.getElementById('result');
       result.style.color = 'var(--mute)';
-      result.textContent = '⟳ running test cases…';
+      result.textContent = T.running;
       const r = await fetch('/api/sessions/' + SID + '/submit', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -156,14 +183,18 @@
           result.style.color = ok ? '#a3c181' : '#f1a99c';
           result.innerHTML =
             '<strong>' + mark + ' ' + (d2.verdict || d2.state).toUpperCase() + '</strong>'
-            + (d2.stdout ? '\n\n— stdout —\n' + d2.stdout : '')
-            + (d2.stderr ? '\n\n— stderr —\n' + d2.stderr : '');
+            + (d2.stdout ? '\n\n' + T.stdout + '\n' + d2.stdout : '')
+            + (d2.stderr ? '\n\n' + T.stderr + '\n' + d2.stderr : '');
           return;
         }
       }
       result.style.color = '#f1c378';
-      result.textContent = '⌛ timed out waiting for verdict (>30s)';
-    });
+      result.textContent = T.timeout;
+    }
+    document.getElementById('run').addEventListener('click', doSubmit);
+
+    // Cmd+Enter / Ctrl+Enter submit
+    editor.addCommand(monaco.KeyMod.CtrlCmd | monaco.KeyCode.Enter, doSubmit);
 
     // anti-cheat events
     function logEvent(type, extra={}) {
@@ -177,17 +208,6 @@
       logEvent('visibility_change', { meta: { hidden: document.hidden } }));
     window.addEventListener('blur', () => logEvent('blur'));
     editor.onDidPaste(() => logEvent('paste'));
-
-    document.getElementById('problem-statement').innerHTML = `
-      <h2>Specification</h2>
-      <p>Implement a solution for <code>{{ session.problem_slug }}</code>.
-      Your interviewer briefed you on requirements and time constraints
-      before the session began.</p>
-      <h2>Notes</h2>
-      <p>Read from <code>stdin</code> and print to <code>stdout</code>.
-      Your code runs in an isolated sandbox; multiple test cases are evaluated.
-      Submit when ready — partial credit is not given.</p>
-    `;
   });
 </script>
 {% endblock %}

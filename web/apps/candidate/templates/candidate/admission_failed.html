@@ -1,45 +1,40 @@
 {% extends "base.html" %}
-{% block title %}Notice — interview-judge{% endblock %}
-{% block masthead %}{% endblock %}
+{% load i18n %}
+{% block title %}{% trans "Notice" %} — interview-judge{% endblock %}
 
 {% block body %}
 <div class="notice-page">
   <div class="notice">
-    <div class="notice-eyebrow">⁂ Notice of Admission</div>
+    <div class="notice-eyebrow">⁂ {% trans "Notice of Admission" %}</div>
     <h1 class="notice-title">
       {% if reason == "time_up" %}
-        Time has <em>elapsed.</em>
+        {% blocktrans %}Time has <em>elapsed.</em>{% endblocktrans %}
       {% elif reason == "session_already_finished" %}
-        This interview has <em>concluded.</em>
+        {% blocktrans %}This interview has <em>concluded.</em>{% endblocktrans %}
       {% else %}
-        Cannot <em>enter</em> the interview.
+        {% blocktrans %}Cannot <em>enter</em> the interview.{% endblocktrans %}
       {% endif %}
     </h1>
     <div class="notice-body">
       {% if reason == "no_cookie" %}
-        Your browser session has expired, or this browser does not carry a
-        valid credential for the interview.
+        {% trans "Your browser session has expired, or this browser does not carry a valid credential for the interview." %}
       {% elif reason == "session_missing" %}
-        We could not locate the requested interview session in our records.
+        {% trans "We could not locate the requested interview session in our records." %}
       {% elif reason == "session_already_finished" %}
-        The interviewer has marked this session complete. Your answer was saved.
+        {% trans "The interviewer has marked this session complete. Your answer was saved." %}
       {% elif reason == "time_up" %}
-        The allotted time has run out — your final answer was captured and
-        saved automatically. Please return to your interviewer.
+        {% trans "The allotted time has run out — your final answer was captured and saved automatically. Please return to your interviewer." %}
       {% else %}
-        The link you used is no longer valid. Tokens are single-use by design;
-        once consumed they cannot be re-used.
+        {% trans "The link you used is no longer valid. Tokens are single-use by design; once consumed they cannot be re-used." %}
       {% endif %}
     </div>
     {% if reason != "time_up" and reason != "session_already_finished" %}
     <div class="notice-body" style="font-size: 14px; margin-top: -8px;">
-      If you closed the tab in error, please ask your interviewer to mint a
-      fresh re-entry link from their dashboard. Re-entry is rate-limited to
-      three per session.
+      {% trans "If you closed the tab in error, please ask your interviewer to mint a fresh re-entry link from their dashboard. Re-entry is rate-limited to three per session." %}
     </div>
     {% endif %}
     <div class="notice-reason">
-      REASON · <b>{{ reason }}</b>
+      {% trans "REASON" %} · <b>{{ reason }}</b>
     </div>
   </div>
 </div>

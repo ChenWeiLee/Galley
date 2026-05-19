@@ -71,10 +71,12 @@ def consume_reentry(request: HttpRequest, token: str) -> HttpResponse:
 
 def session_page(request: HttpRequest) -> HttpResponse:
     """
-    Candidate coding page. Reads cookie, loads session, renders Monaco UI.
-    Step 6 wires the countdown; Step 7 wires WS snapshot push; Step 8 wires
-    real submission flow on top of the walking-skeleton adapter.
+    Candidate coding page. Reads cookie, loads session, renders Monaco UI
+    + the problem's markdown statement rendered to HTML.
     """
+    import markdown as md
+    from web.apps.interviewer.models import Problem
+
     session_id = read_session_cookie(request)
     if not session_id:
         return render(request, "candidate/admission_failed.html",
@@ -84,18 +86,25 @@ def session_page(request: HttpRequest) -> HttpResponse:
     except InterviewSession.DoesNotExist:
         return render(request, "candidate/admission_failed.html",
                       {"reason": "session_missing"}, status=410)
-    # REC-1: gate FROZEN sessions so candidate sees a clear "time's up" page,
-    # not the coding UI that would fail to submit anyway.
     if session.state == InterviewSession.STATE_FROZEN:
         return render(request, "candidate/admission_failed.html",
                       {"reason": "time_up"}, status=410)
 
-    # Step 6 fills `remaining_seconds`; for now show duration as a placeholder.
+    problem = Problem.objects.filter(slug=session.problem_slug).first()
+    problem_html = ""
+    if problem and problem.statement_md:
+        problem_html = md.markdown(
+            problem.statement_md,
+            extensions=["fenced_code", "tables", "sane_lists"],
+        )
+
     return render(
         request,
         "candidate/session.html",
         {
             "session": session,
+            "problem": problem,
+            "problem_html": problem_html,
             "remaining_seconds": (
                 int((session.deadline_utc - DjangoServerClock().now()).total_seconds())
                 if session.deadline_utc

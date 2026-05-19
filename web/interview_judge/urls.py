@@ -5,6 +5,7 @@ from django.urls import include, path
 
 urlpatterns = [
     path("admin/", admin.site.urls),
+    path("i18n/", include("django.conf.urls.i18n")),  # POST /i18n/setlang/
     path("", include("web.apps.core.urls")),
     path("", include("web.apps.judging.urls")),  # Step 3 walking skeleton + Step 8
     path("", include("web.apps.candidate.urls")),  # Step 5 + Step 7 + Step 9
