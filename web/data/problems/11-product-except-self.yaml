@@ -1,0 +1,36 @@
+slug: product-except-self
+title: "[Medium] Product of Array Except Self (LC 238)"
+statement_md: |
+  Given an integer array `nums`, return an array `answer` such that `answer[i]`
+  is the product of all elements of `nums` **except** `nums[i]`.
+
+  **Constraint**: solve in O(n) **without using the division operator**.
+
+  ## Input
+  - One line: space-separated integers (length ≥ 2).
+
+  ## Output
+  - One line: space-separated products in the same order.
+
+  ## Examples
+  - `1 2 3 4` → `24 12 8 6`
+  - `-1 1 0 -3 3` → `0 0 9 0 0`
+
+  Constraints: `2 ≤ len(nums) ≤ 10^5`, `-30 ≤ nums[i] ≤ 30`.
+languages: ["python", "javascript"]
+time_limit_ms: 2000
+memory_limit_kb: 262144
+testcases:
+  - stdin: "1 2 3 4\n"
+    expected_stdout: "24 12 8 6\n"
+    is_example: true
+  - stdin: "-1 1 0 -3 3\n"
+    expected_stdout: "0 0 9 0 0\n"
+  - stdin: "2 3\n"
+    expected_stdout: "3 2\n"
+  - stdin: "5 0 2\n"
+    expected_stdout: "0 10 0\n"
+  - stdin: "0 0\n"
+    expected_stdout: "0 0\n"
+  - stdin: "-2 -3 -4\n"
+    expected_stdout: "12 8 6\n"

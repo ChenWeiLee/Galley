@@ -1,0 +1,38 @@
+slug: container-most-water
+title: "[Medium] Container With Most Water (LC 11)"
+statement_md: |
+  Given `n` non-negative integers `height[0..n-1]` where each represents a
+  vertical line at coordinate `i` with height `height[i]`, find two lines that
+  together with the x-axis form a container holding the **most water**. Return
+  that maximum area.
+
+  Classic **two-pointer** problem — target O(n) time.
+
+  ## Input
+  - One line: space-separated heights.
+
+  ## Output
+  - Single integer: the maximum area.
+
+  ## Examples
+  - `1 8 6 2 5 4 8 3 7` → `49`  (lines at indices 1 and 8)
+  - `1 1` → `1`
+
+  Constraints: `2 ≤ n ≤ 10^5`, `0 ≤ height[i] ≤ 10^4`.
+languages: ["python", "javascript"]
+time_limit_ms: 2000
+memory_limit_kb: 262144
+testcases:
+  - stdin: "1 8 6 2 5 4 8 3 7\n"
+    expected_stdout: "49\n"
+    is_example: true
+  - stdin: "1 1\n"
+    expected_stdout: "1\n"
+  - stdin: "4 3 2 1 4\n"
+    expected_stdout: "16\n"
+  - stdin: "1 2 1\n"
+    expected_stdout: "2\n"
+  - stdin: "2 3 4 5 18 17 6\n"
+    expected_stdout: "17\n"
+  - stdin: "0 0 0\n"
+    expected_stdout: "0\n"

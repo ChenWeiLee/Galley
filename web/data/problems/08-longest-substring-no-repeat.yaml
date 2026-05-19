@@ -1,0 +1,39 @@
+slug: longest-substring-no-repeat
+title: "[Medium] Longest Substring Without Repeating Characters (LC 3)"
+statement_md: |
+  Given a string `s`, find the length of the **longest substring** without
+  repeating characters.
+
+  Standard **sliding window** problem — target O(n) time.
+
+  ## Input
+  - One line: string `s` (may include spaces and any ASCII characters, may be empty).
+
+  ## Output
+  - Single integer: the length of the longest substring without repeating chars.
+
+  ## Examples
+  - `abcabcbb` → `3`  (`abc`)
+  - `bbbbb` → `1`  (`b`)
+  - `pwwkew` → `3`  (`wke`, NOT `pwke` — must be a contiguous substring)
+
+  Constraints: `0 ≤ len(s) ≤ 5×10^4`.
+languages: ["python", "javascript"]
+time_limit_ms: 2000
+memory_limit_kb: 262144
+testcases:
+  - stdin: "abcabcbb\n"
+    expected_stdout: "3\n"
+    is_example: true
+  - stdin: "bbbbb\n"
+    expected_stdout: "1\n"
+  - stdin: "pwwkew\n"
+    expected_stdout: "3\n"
+  - stdin: "\n"
+    expected_stdout: "0\n"
+  - stdin: " \n"
+    expected_stdout: "1\n"
+  - stdin: "dvdf\n"
+    expected_stdout: "3\n"
+  - stdin: "abba\n"
+    expected_stdout: "2\n"

@@ -1,0 +1,35 @@
+slug: best-time-to-buy-stock
+title: "[Easy] Best Time to Buy and Sell Stock (LC 121)"
+statement_md: |
+  Given an array `prices` where `prices[i]` is the stock price on day `i`,
+  return the maximum profit from a **single** buy-then-sell transaction.
+  If no profit is possible, return `0`. You must buy before you sell.
+
+  ## Input
+  - One line: space-separated integer prices.
+
+  ## Output
+  - Single integer: the maximum profit.
+
+  ## Examples
+  - `7 1 5 3 6 4` → `5`  (buy day 1 at 1, sell day 4 at 6)
+  - `7 6 4 3 1` → `0`  (prices only fall — don't buy)
+
+  Constraints: `1 ≤ len(prices) ≤ 10^5`, `0 ≤ prices[i] ≤ 10^4`.
+languages: ["python", "javascript"]
+time_limit_ms: 1500
+memory_limit_kb: 262144
+testcases:
+  - stdin: "7 1 5 3 6 4\n"
+    expected_stdout: "5\n"
+    is_example: true
+  - stdin: "7 6 4 3 1\n"
+    expected_stdout: "0\n"
+  - stdin: "1\n"
+    expected_stdout: "0\n"
+  - stdin: "1 2\n"
+    expected_stdout: "1\n"
+  - stdin: "2 4 1 7\n"
+    expected_stdout: "6\n"
+  - stdin: "3 3 3 3\n"
+    expected_stdout: "0\n"

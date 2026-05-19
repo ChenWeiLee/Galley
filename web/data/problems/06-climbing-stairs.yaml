@@ -1,0 +1,35 @@
+slug: climbing-stairs
+title: "[Easy] Climbing Stairs (LC 70)"
+statement_md: |
+  You are climbing a staircase with `n` steps. At each step you can climb
+  **1 or 2** stairs. How many distinct ways are there to reach the top?
+
+  This is the canonical introductory DP / Fibonacci problem.
+
+  ## Input
+  - One integer `n` (1 ≤ n ≤ 45).
+
+  ## Output
+  - Single integer: number of distinct ways.
+
+  ## Examples
+  - `2` → `2`  (1+1, 2)
+  - `3` → `3`  (1+1+1, 1+2, 2+1)
+  - `5` → `8`
+languages: ["python", "javascript"]
+time_limit_ms: 1500
+memory_limit_kb: 262144
+testcases:
+  - stdin: "2\n"
+    expected_stdout: "2\n"
+    is_example: true
+  - stdin: "3\n"
+    expected_stdout: "3\n"
+  - stdin: "1\n"
+    expected_stdout: "1\n"
+  - stdin: "5\n"
+    expected_stdout: "8\n"
+  - stdin: "10\n"
+    expected_stdout: "89\n"
+  - stdin: "45\n"
+    expected_stdout: "1836311903\n"

@@ -1,0 +1,43 @@
+slug: longest-valid-parens
+title: "[Hard] Longest Valid Parentheses (LC 32)"
+statement_md: |
+  Given a string `s` containing only `(` and `)`, return the length of the
+  longest **valid** (well-formed) parentheses substring.
+
+  Multiple approaches work: dynamic programming, stack with index tracking,
+  or the elegant two-pass counter method.
+
+  ## Input
+  - One line: string `s` (may be empty).
+
+  ## Output
+  - Single integer: length of the longest valid parentheses substring.
+
+  ## Examples
+  - `(()` → `2`  (`()`)
+  - `)()())` → `4`  (`()()` in the middle)
+  - `()(()` → `2`
+  - empty → `0`
+
+  Constraints: `0 ≤ len(s) ≤ 3×10^4`.
+languages: ["python", "javascript"]
+time_limit_ms: 2000
+memory_limit_kb: 262144
+testcases:
+  - stdin: "(()\n"
+    expected_stdout: "2\n"
+    is_example: true
+  - stdin: ")()())\n"
+    expected_stdout: "4\n"
+  - stdin: "\n"
+    expected_stdout: "0\n"
+  - stdin: "()(()\n"
+    expected_stdout: "2\n"
+  - stdin: "()()\n"
+    expected_stdout: "4\n"
+  - stdin: "(()())\n"
+    expected_stdout: "6\n"
+  - stdin: "((((((\n"
+    expected_stdout: "0\n"
+  - stdin: "))))((\n"
+    expected_stdout: "0\n"

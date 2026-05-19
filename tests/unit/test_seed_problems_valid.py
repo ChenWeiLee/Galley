@@ -61,19 +61,27 @@ def test_seed_problems_cover_diverse_categories():
     """
     Spec AC #2: ≥4 distinct categories. We can't tag categories yet (Step 4
     skeleton), so we approximate by topic-keywords in titles/slugs.
+
+    The LC-flavored seed set covers: arrays, strings, stack, two_pointers,
+    sliding_window, binary_search, dp, bit, hashmap.
     """
     seen: set[str] = set()
     keyword_to_cat = {
         "sum": "arrays",
-        "reverse": "strings",
-        "fizz": "control_flow",
-        "anagram": "strings",
-        "fibonacci": "recursion_or_dp",
-        "parenth": "stack",
-        "binary": "search",
-        "bfs": "graph",
-        "stack": "stack",
-        "frequency": "hashmap",
+        "stock": "greedy",
+        "subarray": "dp",
+        "duplicate": "hashmap",
+        "stairs": "dp",
+        "single-number": "bit",
+        "substring": "sliding_window",
+        "three-sum": "two_pointers",
+        "container": "two_pointers",
+        "product": "arrays",
+        "palindrome": "strings",
+        "rain-water": "two_pointers",
+        "median": "binary_search",
+        "parens": "stack",
+        "parentheses": "stack",
     }
     for f in PROBLEMS_DIR.glob("*.yaml"):
         raw = yaml.safe_load(f.read_text())
@@ -81,4 +89,4 @@ def test_seed_problems_cover_diverse_categories():
         for kw, cat in keyword_to_cat.items():
             if kw in slug:
                 seen.add(cat)
-    assert len(seen) >= 4, f"Categories covered: {seen} (need ≥4)"
+    assert len(seen) >= 6, f"Categories covered: {seen} (need ≥6)"

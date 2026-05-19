@@ -1,0 +1,47 @@
+slug: three-sum
+title: "[Medium] 3Sum (LC 15)"
+statement_md: |
+  Given an integer array `nums`, return all **unique** triplets
+  `[nums[i], nums[j], nums[k]]` such that `i ≠ j ≠ k` and
+  `nums[i] + nums[j] + nums[k] == 0`.
+
+  Standard **sort + two-pointers** problem — target O(n²) time.
+
+  ## Input
+  - One line: space-separated integers.
+
+  ## Output
+  - One triplet per line. Within each triplet, numbers are sorted ascending and
+    separated by single spaces. Triplets are sorted lexicographically (by first
+    number, then second, then third). Print nothing extra if no triplets exist.
+
+  ## Examples
+  Input: `-1 0 1 2 -1 -4`
+  Output:
+  ```
+  -1 -1 2
+  -1 0 1
+  ```
+
+  Input: `0 1 1` → (empty output)
+
+  Input: `0 0 0` → `0 0 0`
+
+  Constraints: `3 ≤ len(nums) ≤ 3000`, `-10^5 ≤ nums[i] ≤ 10^5`.
+languages: ["python", "javascript"]
+time_limit_ms: 3000
+memory_limit_kb: 262144
+testcases:
+  - stdin: "-1 0 1 2 -1 -4\n"
+    expected_stdout: "-1 -1 2\n-1 0 1\n"
+    is_example: true
+  - stdin: "0 1 1\n"
+    expected_stdout: ""
+  - stdin: "0 0 0\n"
+    expected_stdout: "0 0 0\n"
+  - stdin: "0 0 0 0\n"
+    expected_stdout: "0 0 0\n"
+  - stdin: "-2 0 1 1 2\n"
+    expected_stdout: "-2 0 2\n-2 1 1\n"
+  - stdin: "1 2 -2 -1\n"
+    expected_stdout: ""

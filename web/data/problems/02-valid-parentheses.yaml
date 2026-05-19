@@ -1,0 +1,39 @@
+slug: valid-parentheses
+title: "[Easy] Valid Parentheses (LC 20)"
+statement_md: |
+  Given a string `s` containing only the characters `()[]{}`, determine if the
+  string is *valid*: every opening bracket must be closed by the same type of
+  bracket, and brackets must close in the correct order.
+
+  ## Input
+  - One line: string `s` (may be empty)
+
+  ## Output
+  - Print `true` or `false`.
+
+  ## Examples
+  - `()[]{}` → `true`
+  - `(]` → `false`
+  - `([)]` → `false`
+  - `{[]}` → `true`
+languages: ["python", "javascript"]
+time_limit_ms: 1500
+memory_limit_kb: 262144
+testcases:
+  - stdin: "()[]{}\n"
+    expected_stdout: "true\n"
+    is_example: true
+  - stdin: "(]\n"
+    expected_stdout: "false\n"
+  - stdin: "([)]\n"
+    expected_stdout: "false\n"
+  - stdin: "{[]}\n"
+    expected_stdout: "true\n"
+  - stdin: "(((((())))))\n"
+    expected_stdout: "true\n"
+  - stdin: "(\n"
+    expected_stdout: "false\n"
+  - stdin: ")\n"
+    expected_stdout: "false\n"
+  - stdin: "\n"
+    expected_stdout: "true\n"

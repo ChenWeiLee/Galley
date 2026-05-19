@@ -1,0 +1,33 @@
+slug: single-number
+title: "[Easy] Single Number (LC 136)"
+statement_md: |
+  Given a non-empty array of integers `nums` where **every element appears
+  exactly twice except for one** which appears once, find that single one.
+
+  Aim for **O(n) time and O(1) extra space** (XOR trick).
+
+  ## Input
+  - One line: space-separated integers.
+
+  ## Output
+  - Single integer: the unique number.
+
+  ## Examples
+  - `2 2 1` → `1`
+  - `4 1 2 1 2` → `4`
+  - `1` → `1`
+languages: ["python", "javascript"]
+time_limit_ms: 1500
+memory_limit_kb: 262144
+testcases:
+  - stdin: "2 2 1\n"
+    expected_stdout: "1\n"
+    is_example: true
+  - stdin: "4 1 2 1 2\n"
+    expected_stdout: "4\n"
+  - stdin: "1\n"
+    expected_stdout: "1\n"
+  - stdin: "-1 -1 -2\n"
+    expected_stdout: "-2\n"
+  - stdin: "7 3 5 3 7\n"
+    expected_stdout: "5\n"

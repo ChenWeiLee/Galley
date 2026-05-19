@@ -1,0 +1,38 @@
+slug: longest-palindrome
+title: "[Medium] Longest Palindromic Substring (LC 5)"
+statement_md: |
+  Given a string `s`, return the **longest palindromic substring** in `s`.
+  If multiple longest palindromes exist, return the **leftmost** one.
+
+  Standard approaches: expand-around-center O(n²) or Manacher's O(n).
+
+  ## Input
+  - One line: string `s` (1 ≤ len ≤ 1000).
+
+  ## Output
+  - One line: the longest palindromic substring (leftmost on ties).
+
+  ## Examples
+  - `babad` → `bab`  (both `bab` and `aba` qualify; pick the leftmost)
+  - `cbbd` → `bb`
+  - `a` → `a`
+  - `ac` → `a`
+languages: ["python", "javascript"]
+time_limit_ms: 2000
+memory_limit_kb: 262144
+testcases:
+  - stdin: "babad\n"
+    expected_stdout: "bab\n"
+    is_example: true
+  - stdin: "cbbd\n"
+    expected_stdout: "bb\n"
+  - stdin: "a\n"
+    expected_stdout: "a\n"
+  - stdin: "ac\n"
+    expected_stdout: "a\n"
+  - stdin: "racecar\n"
+    expected_stdout: "racecar\n"
+  - stdin: "abacdfgdcaba\n"
+    expected_stdout: "aba\n"
+  - stdin: "aaaa\n"
+    expected_stdout: "aaaa\n"
