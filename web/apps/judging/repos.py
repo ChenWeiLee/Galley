@@ -25,8 +25,10 @@ class DjangoSubmissionRepository:
 
     def save(self, sub) -> DomainSubmission:
         """Accepts either a domain Submission OR the inline _PendingSubmission DTO."""
-        # Inline DTO from SubmitCodeUseCase
-        if hasattr(sub, "judge0_tokens") and not hasattr(sub, "result"):
+        # REC-3 fix: discriminate by type, not by hasattr (which silently
+        # broke when fields were added/renamed). The inline DTO is anything
+        # that isn't a DomainSubmission.
+        if not isinstance(sub, DomainSubmission):
             ORMSubmission.objects.update_or_create(
                 id=sub.id,
                 defaults=dict(
@@ -79,10 +81,13 @@ class DjangoSubmissionRepository:
                 time_ms=row.time_ms,
                 memory_kb=row.memory_kb,
             )
+        # REC-2 fix: raise on unknown language so data drift (e.g. a deprecated
+        # language removed from the enum) surfaces immediately instead of silently
+        # rewriting every record's language to Python on read.
         return DomainSubmission(
             id=row.id,
             session_id=row.session_id,
-            language=Language(row.language) if row.language in [l.value for l in Language] else Language.PYTHON,
+            language=Language(row.language),
             source_code=row.source_code,
             submitted_at=row.submitted_at or datetime.now(timezone.utc),
             state=SubmissionState(row.state),

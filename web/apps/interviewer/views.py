@@ -149,6 +149,38 @@ def review(request: HttpRequest, session_id: str) -> HttpResponse:
             "session": session,
             "submissions": submissions,
             "events": events,
-            "snapshots": snapshots,
+            "snapshot_count": snapshots.count(),
         },
     )
+
+
+@login_required
+@staff_required
+def review_snapshots_json(request: HttpRequest, session_id: str) -> JsonResponse:
+    """REC-4 fix: snapshot replay data served as a real JSON endpoint instead
+    of hand-rolled in the template. The replay slider in review.html fetches
+    this once, so escaping bugs in template JSON (\\u2028, backticks, etc.)
+    can't break the page."""
+    try:
+        session = InterviewSession.objects.get(id=session_id)
+    except InterviewSession.DoesNotExist:
+        raise Http404
+    if session.interviewer_username != request.user.username:
+        return JsonResponse({"error": "forbidden"}, status=403)
+    rows = (
+        CodeSnapshot.objects
+        .filter(session=session)
+        .order_by("captured_at")
+        .values("captured_at", "language", "source_code")
+    )
+    return JsonResponse({
+        "session_id": session_id,
+        "snapshots": [
+            {
+                "t": s["captured_at"].isoformat(),
+                "lang": s["language"],
+                "code": s["source_code"] or "",
+            }
+            for s in rows
+        ],
+    })

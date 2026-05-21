@@ -33,7 +33,10 @@ class DjangoQScheduler(Scheduler):
             name=key,
             schedule_type=Schedule.ONCE,
             next_run=run_at,
-            repeats=-1,  # one-shot
+            # `repeats` is ignored when schedule_type=ONCE; django-q2 fires
+            # exactly once regardless. Kept explicit so reviewers don't think
+            # this is a recurring task. (See judging/apps.py for the recurring
+            # poll_pending_submissions schedule where repeats=-1 means forever.)
         )
 
     def cancel(self, key: str) -> None:

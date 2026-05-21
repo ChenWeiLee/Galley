@@ -118,34 +118,37 @@
     <div class="section-head">
       <div class="section-no">§ 03</div>
       <div class="section-title">{% trans "Snapshot replay" %}</div>
-      <div class="section-meta">{% blocktrans count counter=snapshots|length %}{{ counter }} FRAMES{% plural %}{{ counter }} FRAMES{% endblocktrans %}</div>
+      <div class="section-meta">{% blocktrans count counter=snapshot_count %}{{ counter }} FRAMES{% plural %}{{ counter }} FRAMES{% endblocktrans %}</div>
     </div>
     <div class="section-body">
-      {% if snapshots %}
+      {% if snapshot_count %}
         <div style="display: flex; align-items: center; gap: var(--s-3);
                     margin-bottom: var(--s-3);">
           <input type="range" id="snap-range" min="0"
-                 max="{{ snapshots|length|add:'-1' }}"
-                 value="{{ snapshots|length|add:'-1' }}"
+                 max="{{ snapshot_count|add:'-1' }}"
+                 value="{{ snapshot_count|add:'-1' }}"
                  style="flex: 1; accent-color: var(--vermillion);">
           <span id="snap-info" style="font-family: var(--mono); font-size: 11px;
                                        color: var(--mute);
                                        letter-spacing: 0.06em;">—</span>
         </div>
-        <pre id="snap-text" style="min-height: 240px;">{% trans "(use the slider)" %}</pre>
-        <script id="snap-data" type="application/json">
-          [{% for s in snapshots %}
-            {"t": "{{ s.captured_at|date:'c' }}", "lang": "{{ s.language }}",
-             "code": {{ s.source_code|escapejs|safe|stringformat:"\"%s\"" }}}
-            {% if not forloop.last %},{% endif %}
-          {% endfor %}]
-        </script>
+        <pre id="snap-text" style="min-height: 240px;">{% trans "(loading…)" %}</pre>
         <script>
-          try {
-            const data = JSON.parse(document.getElementById('snap-data').textContent);
-            const range = document.getElementById('snap-range');
+          (async () => {
+            const url = "{% url 'interviewer:review_snapshots_json' session.id %}";
             const txt = document.getElementById('snap-text');
+            const range = document.getElementById('snap-range');
             const info = document.getElementById('snap-info');
+            let data = [];
+            try {
+              const r = await fetch(url, {credentials: 'same-origin'});
+              if (!r.ok) throw new Error('http_' + r.status);
+              data = (await r.json()).snapshots || [];
+            } catch (e) {
+              txt.textContent = '(replay disabled — ' + e.message + ')';
+              return;
+            }
+            if (!data.length) { txt.textContent = '(no frames)'; return; }
             function show(i) {
               const s = data[i]; if (!s) return;
               txt.textContent = s.code || '(empty)';
@@ -153,11 +156,11 @@
                 + ' / ' + String(data.length).padStart(3, '0')
                 + '  ·  ' + s.t.replace('T', ' ').split('.')[0];
             }
+            range.max = data.length - 1;
+            range.value = data.length - 1;
             range.addEventListener('input', () => show(range.value));
             show(range.value);
-          } catch (e) {
-            document.getElementById('snap-text').textContent = '(replay disabled)';
-          }
+          })();
         </script>
       {% else %}
         <div class="empty">

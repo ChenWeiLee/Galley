@@ -10,4 +10,9 @@ urlpatterns = [
     path("dashboard/<str:session_id>/reentry", views.mint_reentry, name="mint_reentry"),
     path("dashboard/<str:session_id>/observe", views.observe, name="observe"),
     path("dashboard/<str:session_id>/review", views.review, name="review"),
+    path(
+        "dashboard/<str:session_id>/review/snapshots.json",
+        views.review_snapshots_json,
+        name="review_snapshots_json",
+    ),
 ]
