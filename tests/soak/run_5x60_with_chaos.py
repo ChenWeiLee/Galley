@@ -317,9 +317,10 @@ async def main(args: argparse.Namespace) -> int:
 
     results: list[SessionResult] = []
     for i in range(args.sessions):
-        label, chaos = CHAOS_SCRIPTS[i % len(CHAOS_SCRIPTS)]
-        recover = CHAOS_RECOVER[i % len(CHAOS_RECOVER)]
-        print(f"--- Session {i+1}/{args.sessions} — {label} ---")
+        idx = (args.start_index + i) % len(CHAOS_SCRIPTS)
+        label, chaos = CHAOS_SCRIPTS[idx]
+        recover = CHAOS_RECOVER[idx]
+        print(f"--- Session {i+1}/{args.sessions} (chaos #{idx}) — {label} ---")
         t0 = time.time()
         r = await run_one_session(i + 1, args, label, chaos, recover)
         elapsed = time.time() - t0
@@ -355,6 +356,8 @@ def parse_args() -> argparse.Namespace:
     p.add_argument("--problem", default="two-sum")
     p.add_argument("--session-duration-min", type=int, default=60)
     p.add_argument("--sessions", type=int, default=5)
+    p.add_argument("--start-index", type=int, default=0,
+                   help="Skip the first N chaos scripts (0=start fresh)")
     return p.parse_args()
 
 
