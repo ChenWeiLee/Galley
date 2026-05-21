@@ -9,6 +9,7 @@ from __future__ import annotations
 
 from django.db import transaction
 
+from domain.entities import Difficulty as DomainDifficulty
 from domain.entities import Language as DomainLanguage
 from domain.entities import Problem as DomainProblem
 from domain.entities import Testcase as DomainTestcase
@@ -37,7 +38,10 @@ class DjangoProblemRepository:
             slug=problem.slug,
             defaults=dict(
                 title=problem.title,
+                title_zh=problem.title_zh,
                 statement_md=problem.statement_md,
+                statement_md_zh=problem.statement_md_zh,
+                difficulty=problem.difficulty.value,
                 languages=[lang.value for lang in problem.languages],
                 time_limit_ms=problem.time_limit_ms,
                 memory_limit_kb=problem.memory_limit_kb,
@@ -66,7 +70,10 @@ class DjangoProblemRepository:
         return DomainProblem(
             slug=row.slug,
             title=row.title,
+            title_zh=row.title_zh or "",
             statement_md=row.statement_md,
+            statement_md_zh=row.statement_md_zh or "",
+            difficulty=DomainDifficulty(row.difficulty or "easy"),
             languages=[DomainLanguage(lang) for lang in row.languages],
             time_limit_ms=row.time_limit_ms,
             memory_limit_kb=row.memory_limit_kb,

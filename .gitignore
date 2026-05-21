@@ -34,5 +34,5 @@ playwright-report/
 playwright/.cache/
 
 # project specific
-ops/backups/*
-!ops/backups/.gitkeep
+ops/backup/dumps/*
+!ops/backup/dumps/.gitkeep

@@ -111,17 +111,14 @@ def submission_status(request: HttpRequest, sub_id: str) -> JsonResponse:
         return JsonResponse({"error": "not found"}, status=404)
 
     if sub.state == Submission.STATE_PENDING and sub.judge0_tokens:
-        # Pull from Judge0
         try:
             results = Judge0Client().fetch_results(sub.judge0_tokens)
         except Exception as e:  # noqa: BLE001
             return JsonResponse(
                 {"id": sub_id, "state": sub.state, "fetch_error": str(e)}, status=200
             )
-        # Aggregate: skeleton has 1 testcase, but support batch.
         all_terminal = all(r.is_terminal() for r in results)
         if all_terminal and results:
-            # Worst verdict wins (any non-Accepted is a failure)
             terminal = next((r for r in results if not r.is_accepted()), results[0])
             sub.state = Submission.STATE_JUDGED
             sub.verdict = terminal.verdict.value
@@ -129,6 +126,19 @@ def submission_status(request: HttpRequest, sub_id: str) -> JsonResponse:
             sub.stderr = terminal.stderr or ""
             sub.time_ms = terminal.time_ms
             sub.memory_kb = terminal.memory_kb
+            # Real submission flow goes through RecordVerdictUseCase, which
+            # populates per_testcase_results. Skeleton is single-testcase, so
+            # we shim a synthetic entry here for UI consistency.
+            sub.per_testcase_results = [{
+                "idx": i,
+                "verdict": r.verdict.value,
+                "time_ms": r.time_ms,
+                "memory_kb": r.memory_kb,
+                "is_example": True,
+                "stdout": r.stdout or "",
+                "expected": SKELETON_PROBLEM["testcases"][i][1]
+                            if i < len(SKELETON_PROBLEM["testcases"]) else "",
+            } for i, r in enumerate(results)]
             sub.save()
 
     return JsonResponse(
@@ -140,6 +150,7 @@ def submission_status(request: HttpRequest, sub_id: str) -> JsonResponse:
             "stderr": sub.stderr,
             "time_ms": sub.time_ms,
             "memory_kb": sub.memory_kb,
+            "per_testcase_results": sub.per_testcase_results or [],
             "polled_at": datetime.now(timezone.utc).isoformat(),
         }
     )

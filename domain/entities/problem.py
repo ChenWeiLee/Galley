@@ -3,7 +3,7 @@ from __future__ import annotations
 
 from dataclasses import dataclass, field
 
-from .values import Language
+from .values import Difficulty, Language
 
 
 @dataclass
@@ -38,6 +38,9 @@ class Problem:
     time_limit_ms: int = 2000
     memory_limit_kb: int = 262144  # 256 MB
     testcases: list[Testcase] = field(default_factory=list)
+    title_zh: str = ""
+    statement_md_zh: str = ""
+    difficulty: Difficulty = Difficulty.EASY
 
     def __post_init__(self) -> None:
         if not self.slug:

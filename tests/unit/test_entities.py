@@ -6,6 +6,7 @@ from datetime import datetime, timezone
 import pytest
 
 from domain.entities import (
+    Difficulty,
     InterviewSession,
     Judge0Result,
     Language,
@@ -69,6 +70,29 @@ def test_problem_happy_path():
     )
     assert p.slug == "two-sum"
     assert len(p.testcases) == 2
+
+
+def test_problem_defaults_zh_blank_and_difficulty_easy():
+    p = Problem(
+        slug="p", title="P", statement_md=".",
+        languages=[Language.PYTHON],
+        testcases=[Testcase(stdin="1", expected_stdout="1", is_example=True)],
+    )
+    assert p.title_zh == ""
+    assert p.statement_md_zh == ""
+    assert p.difficulty is Difficulty.EASY
+
+
+def test_problem_accepts_difficulty_and_zh_fields():
+    p = Problem(
+        slug="p", title="Two Sum", statement_md="EN body",
+        languages=[Language.PYTHON],
+        testcases=[Testcase(stdin="1", expected_stdout="1", is_example=True)],
+        title_zh="兩數之和", statement_md_zh="中文題敘",
+        difficulty=Difficulty.MEDIUM,
+    )
+    assert p.title_zh == "兩數之和"
+    assert p.difficulty is Difficulty.MEDIUM
 
 
 # ---------------- InterviewSession state transitions ----------------

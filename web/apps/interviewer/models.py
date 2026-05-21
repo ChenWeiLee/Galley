@@ -5,9 +5,26 @@ from django.db import models
 
 
 class Problem(models.Model):
+    DIFFICULTY_EASY = "easy"
+    DIFFICULTY_MEDIUM = "medium"
+    DIFFICULTY_HARD = "hard"
+    DIFFICULTY_CHOICES = [
+        (DIFFICULTY_EASY, "Easy"),
+        (DIFFICULTY_MEDIUM, "Medium"),
+        (DIFFICULTY_HARD, "Hard"),
+    ]
+
     slug = models.SlugField(unique=True, max_length=128)
-    title = models.CharField(max_length=200)
-    statement_md = models.TextField(help_text="Markdown body shown to candidate.")
+    title = models.CharField(max_length=200, help_text="Canonical English title.")
+    title_zh = models.CharField(max_length=200, blank=True, default="",
+                                help_text="Optional traditional Chinese title.")
+    statement_md = models.TextField(help_text="Markdown statement (English).")
+    statement_md_zh = models.TextField(blank=True, default="",
+                                        help_text="Optional 繁中 markdown statement.")
+    difficulty = models.CharField(
+        max_length=10, choices=DIFFICULTY_CHOICES, default=DIFFICULTY_EASY,
+        db_index=True,
+    )
     languages = models.JSONField(
         default=list,
         help_text='List of language slugs e.g. ["python", "javascript"]',
@@ -19,10 +36,20 @@ class Problem(models.Model):
 
     class Meta:
         db_table = "problems"
-        ordering = ["slug"]
+        ordering = ["difficulty", "slug"]
 
     def __str__(self) -> str:
-        return f"{self.slug} — {self.title}"
+        return f"[{self.difficulty}] {self.slug} — {self.title}"
+
+    def localized_title(self, lang: str) -> str:
+        if lang and lang.startswith("zh") and self.title_zh:
+            return self.title_zh
+        return self.title
+
+    def localized_statement(self, lang: str) -> str:
+        if lang and lang.startswith("zh") and self.statement_md_zh:
+            return self.statement_md_zh
+        return self.statement_md
 
 
 class Testcase(models.Model):

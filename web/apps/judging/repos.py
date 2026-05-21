@@ -48,6 +48,7 @@ class DjangoSubmissionRepository:
             judge0_tokens=sub.judge0_tokens,
             forced=sub.forced,
             state=sub.state.value,
+            per_testcase_results=getattr(sub, "per_testcase_results", []) or [],
         )
         if sub.result is not None:
             defaults.update(

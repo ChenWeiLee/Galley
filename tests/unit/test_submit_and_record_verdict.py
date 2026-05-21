@@ -190,3 +190,40 @@ def test_record_verdict_aggregates_worst_verdict_first():
         "sub-1", [_accepted_result(), _wa_result(), _accepted_result()]
     )
     assert subs.by_id["sub-1"].verdict() == Verdict.WRONG_ANSWER
+
+
+def test_per_testcase_hides_stdout_and_expected_for_hidden_cases():
+    """Hidden testcases must not leak stdout/expected to candidate; example ones may."""
+    sub = _pending_sub()
+    subs = _FakeSubmissions({"sub-1": sub})
+    bc = _FakeBroadcaster()
+    RecordVerdictUseCase(submissions=subs, broadcaster=bc).execute(
+        "sub-1",
+        [_accepted_result(), _wa_result()],
+        example_flags=[True, False],
+        example_expected=["1\n", "should-not-leak"],
+    )
+    rows = subs.by_id["sub-1"].per_testcase_results
+    assert len(rows) == 2
+    # Example row exposes stdout + expected
+    assert rows[0]["is_example"] is True
+    assert rows[0]["stdout"] == "1\n"
+    assert rows[0]["expected"] == "1\n"
+    # Hidden row keeps verdict/time/memory but omits stdout/expected entirely
+    assert rows[1]["is_example"] is False
+    assert "stdout" not in rows[1]
+    assert "expected" not in rows[1]
+    assert rows[1]["verdict"] == Verdict.WRONG_ANSWER.value
+
+
+def test_per_testcase_defaults_when_no_flags_provided():
+    """If callback doesn't supply example metadata, every row is treated as hidden."""
+    sub = _pending_sub()
+    subs = _FakeSubmissions({"sub-1": sub})
+    bc = _FakeBroadcaster()
+    RecordVerdictUseCase(submissions=subs, broadcaster=bc).execute(
+        "sub-1", [_accepted_result()]
+    )
+    rows = subs.by_id["sub-1"].per_testcase_results
+    assert rows[0]["is_example"] is False
+    assert "stdout" not in rows[0]

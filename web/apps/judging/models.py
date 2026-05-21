@@ -32,6 +32,13 @@ class Submission(models.Model):
     time_ms = models.IntegerField(null=True, blank=True)
     memory_kb = models.IntegerField(null=True, blank=True)
     forced = models.BooleanField(default=False)
+    # Per-testcase results: list of dicts
+    #   [{"idx": 0, "verdict": "accepted", "time_ms": 12, "memory_kb": 4096,
+    #     "stdout": "...", "expected": "...", "is_example": true}, ...]
+    # `stdout` and `expected` are populated for example testcases only — hidden
+    # ones intentionally omit them so candidates can't see them, but counts
+    # and per-test verdicts are always present.
+    per_testcase_results = models.JSONField(default=list, blank=True)
 
     class Meta:
         db_table = "submissions"

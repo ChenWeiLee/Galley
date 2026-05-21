@@ -33,6 +33,23 @@ def _record_uc() -> RecordVerdictUseCase:
     )
 
 
+def _example_metadata_for(sub: Submission) -> tuple[list[bool], list[str]]:
+    """Look up the problem and return (is_example_flags, expected_stdouts) so
+    RecordVerdictUseCase can decorate per-testcase rows with diagnostic data
+    for the example testcases only."""
+    from web.apps.interviewer.models import Problem
+
+    p = Problem.objects.filter(slug=sub.problem_slug).first()
+    if not p:
+        return [], []
+    flags = []
+    expected = []
+    for tc in p.testcases.all():
+        flags.append(bool(tc.is_example))
+        expected.append(tc.expected_stdout)
+    return flags, expected
+
+
 @csrf_exempt
 def judge0_callback(request: HttpRequest) -> JsonResponse:
     """Judge0 hits this when a submission finishes."""
@@ -52,13 +69,13 @@ def judge0_callback(request: HttpRequest) -> JsonResponse:
     if sub is None:
         return JsonResponse({"error": "submission not found"}, status=404)
 
-    # Pull fresh results from Judge0 (callback only signals completion).
     if not sub.judge0_tokens:
         return JsonResponse({"error": "no judge tokens"}, status=400)
     results = Judge0Client().fetch_results(sub.judge0_tokens)
+    flags, expected_stdouts = _example_metadata_for(sub)
 
     try:
-        _record_uc().execute(submission_id, results)
+        _record_uc().execute(submission_id, results, flags, expected_stdouts)
     except RecordVerdictError as e:
         return JsonResponse({"error": str(e)}, status=404)
     return JsonResponse({"status": "recorded"})
@@ -91,8 +108,9 @@ def poll_pending_submissions() -> int:
             continue
         if not all(r.is_terminal() for r in results):
             continue
+        flags, expected_stdouts = _example_metadata_for(sub)
         try:
-            uc.execute(sub.id, results)
+            uc.execute(sub.id, results, flags, expected_stdouts)
             resolved += 1
         except RecordVerdictError:
             continue

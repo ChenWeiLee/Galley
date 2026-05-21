@@ -37,6 +37,14 @@ class Language(str, Enum):
     CSHARP = "csharp"
 
 
+class Difficulty(str, Enum):
+    """LeetCode-style difficulty tier. Stored as CharField; ordering uses this."""
+
+    EASY = "easy"
+    MEDIUM = "medium"
+    HARD = "hard"
+
+
 @dataclass(frozen=True)
 class Judge0Result:
     """

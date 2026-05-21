@@ -33,6 +33,7 @@ class Submission:
     judge0_tokens: list[str] = field(default_factory=list)  # one token per testcase
     result: Judge0Result | None = None
     forced: bool = False  # True if auto-submit at deadline (vs candidate-initiated)
+    per_testcase_results: list[dict] = field(default_factory=list)
 
     def record_verdict(self, result: Judge0Result) -> None:
         """Idempotent verdict recording. Once JUDGED, never re-records."""

@@ -3,7 +3,7 @@ from __future__ import annotations
 
 from dataclasses import dataclass, field
 
-from domain.entities import Problem
+from domain.entities import Difficulty, Problem
 from domain.usecases.import_problem import ImportProblemUseCase
 
 
@@ -66,3 +66,31 @@ def test_import_rejects_problem_without_example_testcase():
     with pytest.raises(ValueError, match="example testcase"):
         uc.execute(raw)
     assert repo.saved == []
+
+
+def test_import_defaults_difficulty_easy_and_zh_blank():
+    uc = ImportProblemUseCase(repo=_FakeProblemRepo())
+    raw = {
+        "slug": "p", "title": "T", "statement_md": ".",
+        "languages": ["python"],
+        "testcases": [{"stdin": "1", "expected_stdout": "1", "is_example": True}],
+    }
+    saved = uc.execute(raw)
+    assert saved.difficulty is Difficulty.EASY
+    assert saved.title_zh == ""
+    assert saved.statement_md_zh == ""
+
+
+def test_import_reads_difficulty_and_zh_fields():
+    uc = ImportProblemUseCase(repo=_FakeProblemRepo())
+    raw = {
+        "slug": "p", "title": "Two Sum", "title_zh": "兩數之和",
+        "statement_md": "EN", "statement_md_zh": "中",
+        "difficulty": "hard",
+        "languages": ["python"],
+        "testcases": [{"stdin": "1", "expected_stdout": "1", "is_example": True}],
+    }
+    saved = uc.execute(raw)
+    assert saved.difficulty is Difficulty.HARD
+    assert saved.title_zh == "兩數之和"
+    assert saved.statement_md_zh == "中"

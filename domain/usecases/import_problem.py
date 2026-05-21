@@ -12,7 +12,7 @@ from __future__ import annotations
 
 from dataclasses import dataclass
 
-from domain.entities import Language, Problem, Testcase
+from domain.entities import Difficulty, Language, Problem, Testcase
 from domain.ports import ProblemRepository
 
 
@@ -24,11 +24,14 @@ class ImportProblemUseCase:
         """
         Validate and persist a problem from a raw dict (YAML-decoded or admin-form).
 
-        `raw` shape:
+        Shape:
         ```
         slug: "two-sum"
+        difficulty: easy
         title: "Two Sum"
+        title_zh: "兩數之和"
         statement_md: "..."
+        statement_md_zh: "..."   # optional 繁中 markdown
         languages: ["python", "javascript"]
         time_limit_ms: 2000
         memory_limit_kb: 262144
@@ -42,7 +45,10 @@ class ImportProblemUseCase:
         problem = Problem(
             slug=raw["slug"],
             title=raw["title"],
+            title_zh=raw.get("title_zh", ""),
             statement_md=raw["statement_md"],
+            statement_md_zh=raw.get("statement_md_zh", ""),
+            difficulty=Difficulty(raw.get("difficulty", "easy")),
             languages=[Language(lang) for lang in raw["languages"]],
             time_limit_ms=raw.get("time_limit_ms", 2000),
             memory_limit_kb=raw.get("memory_limit_kb", 262144),
