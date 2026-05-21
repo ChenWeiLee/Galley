@@ -1,21 +1,14 @@
 # Follow-ups before Step 11 (soak harness)
 
-Last updated: 2026-05-11 after Steps 5-10 architect review.
+Last updated: 2026-05-21 after autopilot cleanup pass (commits e9995fe, 57f85d2).
 
 ## Required (blocking Step 11 soak)
 
-- [ ] **Generate and commit initial migrations** (still open from Steps 1-4 review)
-      Run inside the `web` container once compose is up:
-      ```bash
-      docker compose exec web python web/manage.py makemigrations \
-          interviewer judging candidate
-      git add web/apps/*/migrations/0001_initial.py
-      git commit -m "chore(interview-judge): commit initial migrations"
-      ```
-      Without these, `make up` won't be reproducible. The `candidate` app has
-      4 models (InterviewSession, Token, ReentryToken, CodeSnapshot,
-      AntiCheatEvent), `judging` has 1 (Submission), `interviewer` has 2
-      (Problem, Testcase).
+- [x] **Generate and commit initial migrations** — done. `0001_initial` for all
+      three apps (interviewer / judging / candidate) is in tree, and the two
+      `0002` follow-ups (per_testcase_results, difficulty+i18n) committed in
+      e9995fe. `docker compose exec -T web python web/manage.py showmigrations`
+      reports `[X]` across the board.
 
 ## Fixed in Steps 5-10 close (already in code)
 
@@ -30,23 +23,27 @@ Last updated: 2026-05-11 after Steps 5-10 architect review.
 - [x] **qmonitor healthcheck**: replaced `qmonitor --once` (flag may not
       exist) with a `django_q.models.Stat` heartbeat probe in compose.
 
-## Recommended (non-blocking)
+## Recommended (non-blocking) — all closed 2026-05-21 in commit 57f85d2
 
-These were noted by the Steps 5-10 architect but defer cleanly:
-
-- [ ] **REC-2**: `web/apps/judging/repos.py:_to_domain` silently falls back
-      to `Language.PYTHON` on unknown values. Should `raise` so data drift
-      surfaces.
-- [ ] **REC-3**: `_PendingSubmission` discriminator in `repos.save()` uses
-      `hasattr(sub, "result")` — fragile to future renames. Split into
-      `save_pending()` + `save_judged()` or add explicit marker class attr.
-- [ ] **REC-4** (Step 12 already planned): `interviewer/review.html` snapshot
-      replay slider hand-rolls JSON in template. Move to API endpoint.
-- [ ] **REC-5**: `scheduling/adapters.py:36` `repeats=-1` comment is
-      misleading (Schedule.ONCE makes it one-shot; `repeats` is ignored).
-- [ ] **REC-6**: `INTERVIEW_SESSION_COOKIE_MAX_AGE_SECONDS=18000` (5h) is a
-      fixed default not bound to `freeze_at + 5min` from Plan REV-4.
-      Defensible but document in `cookies.py`.
+- [x] **REC-2**: `_to_domain` now calls `Language(row.language)` directly;
+      unknown values raise `ValueError` so data drift surfaces immediately
+      instead of being silently rewritten to Python on read.
+- [x] **REC-3**: switched discriminator to `isinstance(sub, DomainSubmission)`
+      — sharp positive type check, no longer fooled if either DTO grows or
+      loses fields.
+- [x] **REC-4**: new endpoint `interviewer:review_snapshots_json` serves the
+      replay frames as JSON; `review.html` fetches via `await fetch(...)`
+      instead of injecting hand-rolled JSON. Template no longer depends on
+      `escapejs|stringformat` to round-trip source code.
+- [x] **REC-5**: kept `repeats=-1` for explicitness, replaced the wrong
+      "one-shot" comment with one explaining that `schedule_type=Schedule.ONCE`
+      makes `repeats` a no-op (and pointing at `judging/apps.py` where
+      `repeats=-1` IS load-bearing for the recurring poll task).
+- [x] **REC-6**: `cookies.py` module docstring now documents the 5h ceiling
+      rationale (signed payload only carries `session_id`; server-side FROZEN
+      gate makes post-deadline possession harmless) and notes how to bind
+      `max_age` to `session.remaining_seconds() + 300` at admit time if a
+      tighter TTL is ever wanted.
 
 ## Trivially deferred
 
@@ -54,13 +51,22 @@ These were noted by the Steps 5-10 architect but defer cleanly:
 - Step 13: re-soak after fixes.
 - Step 14: pilot with friendly internal candidate.
 
-## Untested in this environment
+## Tested 2026-05-21 against live `docker compose up` stack (up ~41h)
 
-- `docker compose up` against a real Docker daemon.
-- `/healthz` and `/readyz` runtime behavior.
-- `make seed` against a real Postgres.
-- Walking skeleton e2e (Monaco → Judge0 → verdict).
-- WebSocket reconnect chaos (kill redis-channels mid-session).
-- Auto-submit chaos (kill web 30s before freeze_at, verify scheduler fires).
+- [x] `docker compose up` healthy — web/scheduler/db/redis-channels/judge0/pgdump all running
+- [x] `/healthz` → 200
+- [x] `/readyz` → 200 (Judge0 `/about` reachable from web container)
+- [x] `/dashboard/` → 302 (login redirect, expected)
+- [x] New `interviewer:review_snapshots_json` URL resolves
+- [x] `python -c "from web.apps.judging.repos import DjangoSubmissionRepository"` clean import after REC-2/3 changes
+- [x] All 0001 + 0002 migrations applied (`showmigrations` all `[X]`)
 
-These verifications run when you bring up the stack for the first time.
+## Still untested — needs explicit go-ahead
+
+- `make seed` against the running Postgres (data may already be seeded; check before re-running).
+- Walking-skeleton e2e through the browser (Monaco → submit → Judge0 → verdict).
+- WebSocket reconnect chaos (`docker compose kill redis-channels`).
+- Auto-submit chaos (`docker compose kill -s 9 web` 30s before `freeze_at`).
+- Step 13 full `run_5x60_with_chaos.py` soak — needs Playwright install +
+  interviewer credentials + 5h budget + willingness to bounce the running
+  stack via `docker compose kill -s 9 web`.
