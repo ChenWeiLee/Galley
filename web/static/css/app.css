@@ -608,11 +608,15 @@ input::placeholder { color: var(--faint); font-style: italic; }
 .brief-eyebrow {
   display: flex;
   justify-content: space-between;
+  align-items: center;
+  gap: var(--s-3);
   margin-bottom: var(--s-4);
   padding-bottom: var(--s-3);
   border-bottom: 1px solid var(--rule);
 }
 .brief-eyebrow .label { color: var(--vermillion); }
+.brief-eyebrow .lang-toggle-brief { margin-left: auto; }
+.stage .lang-toggle-brief { background: transparent; }
 .brief-title {
   font-family: var(--serif);
   font-size: 30px;

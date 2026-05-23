@@ -10,23 +10,23 @@
 {% endblock %}
 
 {% block body %}
-<form action="{% url 'set_language' %}" method="post" class="lang-toggle lang-toggle-floating">
-  {% csrf_token %}
-  <input type="hidden" name="next" value="{{ request.path }}">
-  {% get_current_language as CUR %}
-  {% for code, label in LANGUAGES %}
-    <button type="submit" name="language" value="{{ code }}"
-            class="lang-btn {% if code == CUR %}is-active{% endif %}"
-            aria-label="{{ label }}">
-      {% if code == "en" %}EN{% else %}中{% endif %}
-    </button>
-  {% endfor %}
-</form>
 <div class="stage-shell">
   <aside class="stage-brief">
     <div class="brief-eyebrow">
       <span class="label">⁂ {% trans "Brief" %}</span>
       <span class="label">{% trans "SESSION" %} {{ session.id }}</span>
+      <form action="{% url 'set_language' %}" method="post" class="lang-toggle lang-toggle-brief">
+        {% csrf_token %}
+        <input type="hidden" name="next" value="{{ request.path }}">
+        {% get_current_language as CUR %}
+        {% for code, label in LANGUAGES %}
+          <button type="submit" name="language" value="{{ code }}"
+                  class="lang-btn {% if code == CUR %}is-active{% endif %}"
+                  aria-label="{{ label }}">
+            {% if code == "en" %}EN{% else %}中{% endif %}
+          </button>
+        {% endfor %}
+      </form>
     </div>
     <h1 class="brief-title">{{ problem.title|default:session.problem_slug }}</h1>
     <div class="brief-meta">
