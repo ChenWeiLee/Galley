@@ -2,6 +2,7 @@
 from __future__ import annotations
 
 from django.db import models
+from django.utils.translation import gettext_lazy as _
 
 
 class Problem(models.Model):
@@ -37,6 +38,8 @@ class Problem(models.Model):
     class Meta:
         db_table = "problems"
         ordering = ["difficulty", "slug"]
+        verbose_name = _("Problem")
+        verbose_name_plural = _("Problems")
 
     def __str__(self) -> str:
         return f"[{self.difficulty}] {self.slug} — {self.title}"
@@ -65,6 +68,8 @@ class Testcase(models.Model):
     class Meta:
         db_table = "testcases"
         ordering = ["id"]
+        verbose_name = _("Testcase")
+        verbose_name_plural = _("Testcases")
 
     def __str__(self) -> str:
         return f"Testcase(problem={self.problem.slug}, example={self.is_example})"

@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-05-19 18:10+0000\n"
+"POT-Creation-Date: 2026-05-23 12:11+0000\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -18,397 +18,346 @@ msgstr ""
 "Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: nplurals=1; plural=0;\n"
 
-#: web/apps/candidate/templates/candidate/admission_failed.html:3
 msgid "Notice"
 msgstr "通知"
 
-#: web/apps/candidate/templates/candidate/admission_failed.html:8
 msgid "Notice of Admission"
 msgstr "入場通知"
 
-#: web/apps/candidate/templates/candidate/admission_failed.html:11
 msgid "Time has <em>elapsed.</em>"
 msgstr "時間已 <em>結束</em>"
 
-#: web/apps/candidate/templates/candidate/admission_failed.html:13
 msgid "This interview has <em>concluded.</em>"
 msgstr "面試已 <em>結束</em>"
 
-#: web/apps/candidate/templates/candidate/admission_failed.html:15
 msgid "Cannot <em>enter</em> the interview."
 msgstr "無法 <em>進入</em> 面試。"
 
-#: web/apps/candidate/templates/candidate/admission_failed.html:20
 msgid ""
 "Your browser session has expired, or this browser does not carry a valid "
 "credential for the interview."
 msgstr "你的瀏覽器 session 已過期，或此瀏覽器沒有有效的面試憑證。"
 
-#: web/apps/candidate/templates/candidate/admission_failed.html:22
 msgid "We could not locate the requested interview session in our records."
 msgstr "找不到對應的面試場次。"
 
-#: web/apps/candidate/templates/candidate/admission_failed.html:24
 msgid ""
 "The interviewer has marked this session complete. Your answer was saved."
 msgstr "面試官已標記此場次為已結束，你的答案已儲存。"
 
-#: web/apps/candidate/templates/candidate/admission_failed.html:26
 msgid ""
 "The allotted time has run out — your final answer was captured and saved "
 "automatically. Please return to your interviewer."
 msgstr "面試時間結束 — 系統已自動擷取並儲存你的最終答案，請回到面試官身邊。"
 
-#: web/apps/candidate/templates/candidate/admission_failed.html:28
 msgid ""
 "The link you used is no longer valid. Tokens are single-use by design; once "
 "consumed they cannot be re-used."
 msgstr "你使用的連結已失效。連結為一次性設計，使用過後即無法再次進入。"
 
-#: web/apps/candidate/templates/candidate/admission_failed.html:33
 msgid ""
 "If you closed the tab in error, please ask your interviewer to mint a fresh "
 "re-entry link from their dashboard. Re-entry is rate-limited to three per "
 "session."
-msgstr "若你不小心關閉了分頁，請請面試官於儀表板核發新的重新進入連結。每場最多三次重新進入。"
+msgstr ""
+"若你不小心關閉了分頁，請請面試官於儀表板核發新的重新進入連結。每場最多三次重"
+"新進入。"
 
-#: web/apps/candidate/templates/candidate/admission_failed.html:37
 msgid "REASON"
 msgstr "原因"
 
-#: web/apps/candidate/templates/candidate/session.html:16
 msgid "Brief"
 msgstr "說明"
 
-#: web/apps/candidate/templates/candidate/session.html:17
-#: web/apps/interviewer/templates/interviewer/review.html:9
 msgid "SESSION"
 msgstr "場次"
 
-#: web/apps/candidate/templates/candidate/session.html:21
-#: web/apps/interviewer/templates/interviewer/dashboard.html:75
 msgid "Candidate"
 msgstr "候選人"
 
-#: web/apps/candidate/templates/candidate/session.html:35
 msgid "⌘+Enter to submit"
 msgstr "⌘+Enter 送出"
 
-#: web/apps/candidate/templates/candidate/session.html:39
 msgid "submit ▸"
 msgstr "送出 ▸"
 
-#: web/apps/candidate/templates/candidate/session.html:43
 msgid "Result"
 msgstr "結果"
 
-#: web/apps/candidate/templates/candidate/session.html:45
 msgid ""
 "Press <code>submit</code> (or <code>⌘+Enter</code>) to run the test cases."
 msgstr "按 <code>送出</code>（或 <code>⌘+Enter</code>）執行測資。"
 
-#: web/apps/candidate/templates/candidate/session.html:58
 msgid "⟳ running test cases…"
 msgstr "⟳ 執行測資中…"
 
-#: web/apps/candidate/templates/candidate/session.html:59
 msgid "— stdout —"
 msgstr "— 標準輸出 —"
 
-#: web/apps/candidate/templates/candidate/session.html:60
 msgid "— stderr —"
 msgstr "— 錯誤輸出 —"
 
-#: web/apps/candidate/templates/candidate/session.html:61
 msgid "⌛ timed out waiting for verdict (>30s)"
 msgstr "⌛ 等待結果逾時（超過 30 秒）"
 
-#: web/apps/candidate/templates/candidate/session.html:65
-#: web/apps/candidate/templates/candidate/session.html:66
 msgid "write your solution here"
 msgstr "在此撰寫你的解答"
 
-#: web/apps/interviewer/templates/interviewer/dashboard.html:3
+msgid "Interviewer"
+msgstr "面試官"
+
+msgid "Problem"
+msgstr "題目"
+
+msgid "Problems"
+msgstr "題目"
+
+msgid "Testcase"
+msgstr "測試案例"
+
+msgid "Testcases"
+msgstr "測試案例"
+
 msgid "Dashboard"
 msgstr "儀表板"
 
-#: web/apps/interviewer/templates/interviewer/dashboard.html:8
 msgid "DASHBOARD"
 msgstr "儀表板"
 
-#: web/apps/interviewer/templates/interviewer/dashboard.html:9
 msgid "EDITION"
 msgstr "版本"
 
-#: web/apps/interviewer/templates/interviewer/dashboard.html:11
 msgid "A live <em>ledger</em> of coding interviews."
 msgstr "程式面試的即時 <em>紀錄</em>。"
 
-#: web/apps/interviewer/templates/interviewer/dashboard.html:13
 msgid ""
 "Issue a single-use token URL to a candidate, observe the live editor in real "
 "time, and review submissions, anti-cheat events, and snapshot replays after "
 "the session ends."
-msgstr "發送一次性連結給候選人，即時觀看其作答畫面；面試結束後可檢視提交、防作弊事件與作答回放。"
+msgstr ""
+"發送一次性連結給候選人，即時觀看其作答畫面；面試結束後可檢視提交、防作弊事件"
+"與作答回放。"
 
-#: web/apps/interviewer/templates/interviewer/dashboard.html:20
 msgid "Open a new interview"
 msgstr "開啟新場面試"
 
-#: web/apps/interviewer/templates/interviewer/dashboard.html:21
 msgid "FORM"
 msgstr "表單"
 
-#: web/apps/interviewer/templates/interviewer/dashboard.html:28
 msgid "PROBLEM"
 msgstr "題目"
 
-#: web/apps/interviewer/templates/interviewer/dashboard.html:30
 msgid "select"
 msgstr "請選擇"
 
-#: web/apps/interviewer/templates/interviewer/dashboard.html:37
 msgid "CANDIDATE LABEL"
 msgstr "候選人標籤"
 
-#: web/apps/interviewer/templates/interviewer/dashboard.html:39
 msgid "Alice · req-12345 · etc."
 msgstr "例：王小明 · req-12345"
 
-#: web/apps/interviewer/templates/interviewer/dashboard.html:42
 msgid "DURATION (MIN)"
 msgstr "時間（分鐘）"
 
-#: web/apps/interviewer/templates/interviewer/dashboard.html:47
 msgid "Issue token URL ⤳"
 msgstr "發送連結 ⤳"
 
-#: web/apps/interviewer/templates/interviewer/dashboard.html:54
 msgid "¶ Single-use, expires in 24 h. Send to candidate now."
 msgstr "¶ 一次性連結、24 小時內有效，請立即傳給候選人。"
 
-#: web/apps/interviewer/templates/interviewer/dashboard.html:58
 msgid "Copy"
 msgstr "複製"
 
-#: web/apps/interviewer/templates/interviewer/dashboard.html:67
 msgid "Recent sessions"
 msgstr "近期面試"
 
-#: web/apps/interviewer/templates/interviewer/dashboard.html:68
-#: web/apps/interviewer/templates/interviewer/review.html:43
 #, python-format
 msgid "%(counter)s TOTAL"
 msgid_plural "%(counter)s TOTAL"
 msgstr[0] ""
 msgstr[1] ""
 
-#: web/apps/interviewer/templates/interviewer/dashboard.html:76
-#: web/apps/interviewer/templates/interviewer/review.html:30
-msgid "Problem"
-msgstr "題目"
-
-#: web/apps/interviewer/templates/interviewer/dashboard.html:77
-#: web/apps/interviewer/templates/interviewer/review.html:22
 msgid "State"
 msgstr "狀態"
 
-#: web/apps/interviewer/templates/interviewer/dashboard.html:78
-#: web/apps/interviewer/templates/interviewer/review.html:26
 msgid "Started"
 msgstr "開始於"
 
-#: web/apps/interviewer/templates/interviewer/dashboard.html:79
 msgid "Actions"
 msgstr "操作"
 
-#: web/apps/interviewer/templates/interviewer/dashboard.html:95
 msgid "observe"
 msgstr "觀看"
 
-#: web/apps/interviewer/templates/interviewer/dashboard.html:97
 msgid "re-entry"
 msgstr "重新進入"
 
-#: web/apps/interviewer/templates/interviewer/dashboard.html:100
 msgid "review"
 msgstr "檢視"
 
-#: web/apps/interviewer/templates/interviewer/dashboard.html:108
 msgid "No sessions yet."
 msgstr "尚無面試紀錄。"
 
-#: web/apps/interviewer/templates/interviewer/dashboard.html:109
 msgid "Issue your first token URL above."
 msgstr "於上方建立你的第一場面試。"
 
-#: web/apps/interviewer/templates/interviewer/dashboard.html:116
-#: web/apps/interviewer/templates/interviewer/review.html:173
 msgid "INTERVIEW–JUDGE · INTERNAL EDITION"
 msgstr "INTERVIEW–JUDGE · 內部版"
 
-#: web/apps/interviewer/templates/interviewer/dashboard.html:117
 msgid "SELF-HOST · NO TELEMETRY · PG_DUMP NIGHTLY"
 msgstr "自我代管 · 無遙測 · 每日備份"
 
-#: web/apps/interviewer/templates/interviewer/dashboard.html:123
 msgid "Copied ✓"
 msgstr "已複製 ✓"
 
-#: web/apps/interviewer/templates/interviewer/dashboard.html:124
 msgid "Re-entry URL (single-use):"
 msgstr "重新進入連結（一次性）："
 
-#: web/apps/interviewer/templates/interviewer/observe.html:3
 msgid "Observe"
 msgstr "即時觀看"
 
-#: web/apps/interviewer/templates/interviewer/observe.html:47
 msgid "OBSERVING"
 msgstr "觀看中"
 
-#: web/apps/interviewer/templates/interviewer/observe.html:56
 msgid "connecting"
 msgstr "連線中"
 
-#: web/apps/interviewer/templates/interviewer/observe.html:58
 msgid "review →"
 msgstr "看完整紀錄 →"
 
-#: web/apps/interviewer/templates/interviewer/observe.html:65
 msgid "live"
 msgstr "連線中"
 
-#: web/apps/interviewer/templates/interviewer/observe.html:66
 msgid "reconnecting"
 msgstr "重新連線中"
 
-#: web/apps/interviewer/templates/interviewer/observe.html:67
 msgid "verdict"
 msgstr "判定"
 
-#: web/apps/interviewer/templates/interviewer/review.html:3
 msgid "Review"
 msgstr "紀錄檢視"
 
-#: web/apps/interviewer/templates/interviewer/review.html:8
 msgid "FILE — REVIEW"
 msgstr "檔案 — 檢視"
 
-#: web/apps/interviewer/templates/interviewer/review.html:11
 #, python-format
 msgid "Review of <em>%(name)s</em>"
 msgstr "紀錄：<em>%(name)s</em>"
 
-#: web/apps/interviewer/templates/interviewer/review.html:13
 #, python-format
 msgid ""
 "Final submissions, anti-cheat timeline, and snapshot replay for the "
 "<code>%(slug)s</code> interview."
 msgstr "此場 <code>%(slug)s</code> 面試的提交紀錄、防作弊事件以及作答回放。"
 
-#: web/apps/interviewer/templates/interviewer/review.html:34
 msgid "Deadline"
 msgstr "截止於"
 
-#: web/apps/interviewer/templates/interviewer/review.html:42
 msgid "Submissions"
 msgstr "提交"
 
-#: web/apps/interviewer/templates/interviewer/review.html:53
 msgid "forced"
 msgstr "強制"
 
-#: web/apps/interviewer/templates/interviewer/review.html:58
 msgid "view source"
 msgstr "看原始碼"
 
-#: web/apps/interviewer/templates/interviewer/review.html:72
 msgid "No submissions filed."
 msgstr "沒有任何提交。"
 
-#: web/apps/interviewer/templates/interviewer/review.html:73
 msgid "The candidate did not submit during this session."
 msgstr "此場次候選人沒有提交。"
 
-#: web/apps/interviewer/templates/interviewer/review.html:82
 msgid "Anti-cheat events"
 msgstr "防作弊事件"
 
-#: web/apps/interviewer/templates/interviewer/review.html:83
 #, python-format
 msgid "%(counter)s RECORDED"
 msgid_plural "%(counter)s RECORDED"
 msgstr[0] ""
 msgstr[1] ""
 
-#: web/apps/interviewer/templates/interviewer/review.html:90
 msgid "Time"
 msgstr "時間"
 
-#: web/apps/interviewer/templates/interviewer/review.html:91
 msgid "Event"
 msgstr "事件"
 
-#: web/apps/interviewer/templates/interviewer/review.html:92
 msgid "Detail"
 msgstr "細節"
 
-#: web/apps/interviewer/templates/interviewer/review.html:101
 msgid "bytes"
 msgstr "bytes"
 
-#: web/apps/interviewer/templates/interviewer/review.html:110
 msgid "Clean record."
 msgstr "紀錄乾淨。"
 
-#: web/apps/interviewer/templates/interviewer/review.html:111
 msgid "No visibility changes, pastes, or window blurs detected."
 msgstr "沒有偵測到切窗、複製貼上或離開分頁。"
 
-#: web/apps/interviewer/templates/interviewer/review.html:120
 msgid "Snapshot replay"
 msgstr "作答回放"
 
-#: web/apps/interviewer/templates/interviewer/review.html:121
 #, python-format
 msgid "%(counter)s FRAMES"
 msgid_plural "%(counter)s FRAMES"
 msgstr[0] ""
 msgstr[1] ""
 
-#: web/apps/interviewer/templates/interviewer/review.html:135
-msgid "(use the slider)"
-msgstr "（拖曳上方滑桿來回放）"
+msgid "(loading…)"
+msgstr "（載入中…）"
 
-#: web/apps/interviewer/templates/interviewer/review.html:164
 msgid "No snapshots captured."
 msgstr "沒有作答快照。"
 
-#: web/apps/interviewer/templates/interviewer/review.html:165
 msgid "The candidate did not type during this session."
 msgstr "候選人沒有輸入任何內容。"
 
-#: web/apps/interviewer/templates/interviewer/review.html:172
 msgid "FILED"
 msgstr "歸檔於"
 
-#: web/templates/base.html:18
 msgid "VOL. 01 — INTERNAL EDITION"
 msgstr "第 01 期 — 內部版"
 
-#: web/templates/base.html:21
 msgid "dashboard"
 msgstr "儀表板"
 
-#: web/templates/base.html:22
 msgid "problems"
 msgstr "題庫"
 
-#: web/templates/base.html:23
 msgid "admin"
 msgstr "後台"
 
-#: web/templates/base.html:42
 msgid "sign out"
 msgstr "登出"
+
+#~ msgid "(use the slider)"
+#~ msgstr "（拖曳上方滑桿來回放）"
+
+# --- django-q2 overlay (project-level fallback for missing zh_Hant) ---
+msgid "Django Q2"
+msgstr "Django Q2"
+
+msgid "Failed tasks"
+msgstr "失敗任務"
+
+msgid "Queued tasks"
+msgstr "排隊中任務"
+
+msgid "Scheduled tasks"
+msgstr "排程任務"
+
+msgid "Successful tasks"
+msgstr "成功任務"
+
+msgid "Failed task"
+msgstr "失敗任務"
+
+msgid "Queued task"
+msgstr "排隊中任務"
+
+msgid "Scheduled task"
+msgstr "排程任務"
+
+msgid "Successful task"
+msgstr "成功任務"

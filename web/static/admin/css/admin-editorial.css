@@ -1,0 +1,350 @@
+/* interview-judge — Django admin editorial-bulletin skin.
+ *
+ * Re-skins Django's default admin to match the paper edition (dashboard /
+ * review). Same tokens as web/static/css/app.css. Override-only: we do NOT
+ * shadow Django's structure, just paint over it.
+ */
+
+@import url('https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght,SOFT,WONK@9..144,300..900,30..100,0..1&family=JetBrains+Mono:wght@300;400;500;600&display=swap');
+
+:root,
+:root[data-theme="light"],
+:root[data-theme="dark"],
+:root[data-theme="auto"] {
+  --primary:        #1c1d20;
+  --secondary:      #c43824;        /* vermillion */
+  --accent:         #c43824;
+  --primary-fg:     #f5f1e8;
+
+  --body-fg:        #1c1d20;
+  --body-bg:        #f5f1e8;
+  --body-quiet-color:   #4a4a4d;
+  --body-medium-color:  #4a4a4d;
+  --body-loud-color:    #1c1d20;
+
+  --header-color:        #f5f1e8;
+  --header-branding-color: #f5f1e8;
+  --header-bg:           #1c1d20;
+  --header-link-color:   #f5f1e8;
+
+  --breadcrumbs-fg:      #4a4a4d;
+  --breadcrumbs-link-fg: #1c1d20;
+  --breadcrumbs-bg:      #ebe5d3;
+
+  --link-fg:           #1c1d20;
+  --link-hover-color:  #c43824;
+  --link-selected-fg:  #c43824;
+
+  --hairline-color:    #c8c3b4;
+  --border-color:      #c8c3b4;
+
+  --error-fg:          #c43824;
+  --message-success-bg:  #d8dfc4;
+  --message-warning-bg:  #f1e2bd;
+  --message-error-bg:    #f4dcd4;
+
+  --darkened-bg:       #ebe5d3;
+  --selected-bg:       #f4dcd4;
+  --selected-row:      #fbfaf3;
+
+  --button-fg:         #f5f1e8;
+  --button-bg:         #1c1d20;
+  --button-hover-bg:   #c43824;
+  --default-button-bg: #c43824;
+  --default-button-hover-bg: #5a1d11;
+  --close-button-bg:   #847f72;
+  --close-button-hover-bg: #1c1d20;
+  --delete-button-bg:  #c43824;
+  --delete-button-hover-bg: #5a1d11;
+
+  --object-tools-fg:        #f5f1e8;
+  --object-tools-bg:        #c43824;
+  --object-tools-hover-bg:  #5a1d11;
+}
+
+/* ============================================================
+   typography
+   ============================================================ */
+body,
+.module h2, .module caption, .inline-group h2 {
+  font-family: 'JetBrains Mono', ui-monospace, monospace;
+  font-weight: 300;
+  font-feature-settings: 'tnum' 1, 'ss01' 1;
+  -webkit-font-smoothing: antialiased;
+}
+body { font-size: 13px; line-height: 1.55; }
+
+h1, h2, h3, h4, h5,
+#site-name, #site-name a:link, #site-name a:visited,
+.dashboard #content h1,
+.module caption,
+.inline-group h2 {
+  font-family: 'Fraunces', Georgia, serif;
+  font-variation-settings: 'opsz' 144, 'SOFT' 30, 'WONK' 0;
+  font-weight: 400;
+  letter-spacing: -0.015em;
+}
+
+#site-name, #site-name a:link, #site-name a:visited {
+  font-size: 22px;
+  font-weight: 500;
+  letter-spacing: -0.01em;
+}
+
+/* ============================================================
+   header
+   ============================================================ */
+#header {
+  background: var(--header-bg);
+  color: var(--header-color);
+  border-bottom: 2px solid var(--secondary);
+  padding: 14px 32px;
+}
+#user-tools, #user-tools a {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--header-color);
+}
+#user-tools a:hover { color: var(--secondary); border-bottom-color: var(--secondary); }
+
+/* brand tag — small "— admin" subtitle in site name */
+.brand-tag {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 11px;
+  font-weight: 400;
+  opacity: .55;
+  text-transform: uppercase;
+  letter-spacing: .08em;
+  margin-left: 6px;
+}
+
+/* admin-side language switcher (EN / 中) */
+.admin-lang-toggle {
+  display: inline-flex;
+  gap: 4px;
+  margin: 0 6px 0 0;
+  padding: 0;
+  vertical-align: middle;
+}
+.admin-lang-btn {
+  background: transparent;
+  border: 1px solid rgba(245, 241, 232, 0.25);
+  color: var(--header-color);
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 11px;
+  font-weight: 500;
+  letter-spacing: 0.04em;
+  padding: 2px 8px;
+  border-radius: 2px;
+  cursor: pointer;
+  text-transform: uppercase;
+  transition: background .12s, border-color .12s;
+}
+.admin-lang-btn:hover { border-color: var(--secondary); color: var(--secondary); }
+.admin-lang-btn.is-active {
+  background: var(--secondary);
+  border-color: var(--secondary);
+  color: #f5f1e8;
+}
+.admin-lang-sep {
+  display: inline-block;
+  color: rgba(245, 241, 232, 0.35);
+  margin: 0 6px;
+  font-size: 11px;
+  vertical-align: middle;
+}
+
+/* ============================================================
+   breadcrumbs
+   ============================================================ */
+div.breadcrumbs {
+  background: var(--breadcrumbs-bg);
+  color: var(--breadcrumbs-fg);
+  border-bottom: 1px solid var(--hairline-color);
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  padding: 10px 32px;
+}
+div.breadcrumbs a { color: var(--breadcrumbs-link-fg); }
+div.breadcrumbs a:hover { color: var(--secondary); }
+
+/* ============================================================
+   surfaces — no shadows, sharp 2px corners, hairline rules
+   ============================================================ */
+.module, .inline-group, .form-row, .submit-row {
+  background: #fbfaf3;
+  border: 1px solid var(--hairline-color);
+  border-radius: 2px;
+  box-shadow: none;
+}
+.module h2, .module caption, .inline-group h2 {
+  background: #1c1d20;
+  color: #f5f1e8;
+  font-size: 12px;
+  font-weight: 500;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  padding: 8px 14px;
+  border-radius: 0;
+}
+
+/* ============================================================
+   buttons
+   ============================================================ */
+.button, input[type=submit], input[type=button], .submit-row input, a.button {
+  background: var(--button-bg);
+  color: var(--button-fg);
+  border: 1px solid var(--button-bg);
+  border-radius: 2px;
+  font-family: 'JetBrains Mono', monospace;
+  font-weight: 500;
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  padding: 8px 16px;
+  cursor: pointer;
+  transition: background .12s, border-color .12s;
+}
+.button:hover, input[type=submit]:hover, input[type=button]:hover, .submit-row input:hover {
+  background: var(--button-hover-bg);
+  border-color: var(--button-hover-bg);
+}
+.button.default, input[type=submit].default, .submit-row input.default {
+  background: var(--default-button-bg);
+  border-color: var(--default-button-bg);
+}
+.button.default:hover, input[type=submit].default:hover, .submit-row input.default:hover {
+  background: var(--default-button-hover-bg);
+  border-color: var(--default-button-hover-bg);
+}
+.deletelink, a.deletelink {
+  background: transparent;
+  color: var(--delete-button-bg);
+  border: 1px solid var(--delete-button-bg);
+}
+.deletelink:hover { background: var(--delete-button-bg); color: #f5f1e8; }
+
+/* object-tools (top-right "Add X" / History) */
+.object-tools a {
+  background: var(--object-tools-bg);
+  color: var(--object-tools-fg);
+  border-radius: 2px;
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  padding: 6px 14px;
+}
+.object-tools a:hover, .object-tools a:focus { background: var(--object-tools-hover-bg); }
+
+/* ============================================================
+   forms
+   ============================================================ */
+input[type=text], input[type=password], input[type=email], input[type=url],
+input[type=number], input[type=tel], textarea, select, .vTextField {
+  font-family: 'JetBrains Mono', monospace;
+  font-weight: 300;
+  font-size: 13px;
+  background: #fbfaf3;
+  color: var(--body-fg);
+  border: 1px solid var(--hairline-color);
+  border-radius: 2px;
+  padding: 6px 10px;
+}
+input:focus, textarea:focus, select:focus {
+  outline: none;
+  border-color: var(--secondary);
+  box-shadow: 0 0 0 1px var(--secondary);
+}
+
+/* ============================================================
+   tables (changelist)
+   ============================================================ */
+#changelist table thead th {
+  background: #ebe5d3;
+  color: var(--body-fg);
+  border-bottom: 2px solid var(--body-fg);
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 11px;
+  font-weight: 500;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  padding: 10px 12px;
+}
+#changelist table tbody tr { border-bottom: 1px solid var(--hairline-color); }
+#changelist table tbody tr:hover { background: var(--selected-row); }
+#changelist table tbody td, #changelist table tbody th {
+  padding: 10px 12px;
+  border-bottom: 1px solid var(--hairline-color);
+}
+
+/* row-action checkboxes column */
+#changelist-form .action-counter { color: var(--body-quiet-color); }
+
+/* ============================================================
+   sidebar (nav)
+   ============================================================ */
+#nav-sidebar {
+  background: #fbfaf3;
+  border-right: 1px solid var(--hairline-color);
+}
+#nav-sidebar .module th, #nav-sidebar caption {
+  background: transparent;
+  color: var(--body-quiet-color);
+  border-bottom: 1px solid var(--hairline-color);
+  font-size: 10px;
+}
+#nav-sidebar a { color: var(--body-fg); }
+#nav-sidebar a:hover { color: var(--secondary); }
+#nav-sidebar .current-model a { color: var(--secondary); font-weight: 500; }
+
+/* ============================================================
+   login page
+   ============================================================ */
+body.login { background: var(--body-bg); }
+body.login #container {
+  background: #fbfaf3;
+  border: 1px solid var(--hairline-color);
+  border-top: 3px solid var(--secondary);
+  border-radius: 2px;
+  box-shadow: none;
+}
+body.login #header {
+  background: transparent;
+  border-bottom: 1px solid var(--hairline-color);
+}
+body.login #header h1, body.login #header h1 a { color: var(--body-fg); }
+body.login .submit-row { background: transparent; border: none; padding: 0; }
+
+/* ============================================================
+   messages (success/warning/error banners)
+   ============================================================ */
+ul.messagelist li {
+  border-radius: 2px;
+  border: 1px solid var(--hairline-color);
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 12px;
+}
+ul.messagelist li.success { background: var(--message-success-bg); border-color: #4a6739; }
+ul.messagelist li.warning { background: var(--message-warning-bg); border-color: #a1762a; }
+ul.messagelist li.error   { background: var(--message-error-bg);   border-color: #c43824; color: #5a1d11; }
+
+/* ============================================================
+   misc — soft corners off, kill shadows globally
+   ============================================================ */
+.button, input, select, textarea, .module, .submit-row,
+.paginator, .actions, .dashboard .module {
+  box-shadow: none !important;
+}
+.paginator { border-top: 1px solid var(--hairline-color); padding-top: 8px; }
+.paginator a, .paginator .this-page {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 11px;
+  padding: 4px 10px;
+  border-radius: 2px;
+}
+.paginator .this-page { background: var(--secondary); color: #f5f1e8; }

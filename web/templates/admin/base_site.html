@@ -1,0 +1,36 @@
+{% extends "admin/base.html" %}
+{% load i18n static %}
+
+{% block title %}{{ title }} | interview-judge{% endblock %}
+
+{% block extrastyle %}
+  {{ block.super }}
+  <link rel="stylesheet" href="{% static 'admin/css/admin-editorial.css' %}">
+{% endblock %}
+
+{% block branding %}
+  <h1 id="site-name">
+    <a href="{% url 'admin:index' %}">
+      interview-judge <span class="brand-tag">— admin</span>
+    </a>
+  </h1>
+{% endblock %}
+
+{% block userlinks %}
+  <form action="{% url 'set_language' %}" method="post" class="admin-lang-toggle">
+    {% csrf_token %}
+    <input type="hidden" name="next" value="{{ request.path }}">
+    {% get_current_language as CUR %}
+    {% for code, label in LANGUAGES %}
+      <button type="submit" name="language" value="{{ code }}"
+              class="admin-lang-btn {% if code == CUR %}is-active{% endif %}"
+              title="{{ label }}">
+        {% if code == "en" %}EN{% else %}中{% endif %}
+      </button>
+    {% endfor %}
+  </form>
+  <span class="admin-lang-sep">/</span>
+  {{ block.super }}
+{% endblock %}
+
+{% block nav-global %}{% endblock %}
