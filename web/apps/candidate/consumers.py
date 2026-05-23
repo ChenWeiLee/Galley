@@ -54,7 +54,7 @@ class CandidateConsumer(AsyncJsonWebsocketConsumer):
         try:
             return signing.loads(
                 raw,
-                salt="interview-judge.session",
+                salt="galley.session",
                 max_age=settings.INTERVIEW_SESSION_COOKIE_MAX_AGE_SECONDS,
             )
         except signing.BadSignature:

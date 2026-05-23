@@ -1,5 +1,5 @@
 """
-Django settings for interview-judge.
+Django settings for galley.
 
 Patch #4 (Plan iter-2): redis URLs read from env vars with NO DEFAULTS.
 Missing values must crash at startup — this prevents the silent
@@ -28,8 +28,8 @@ SECRET_KEY = os.environ.get("DJANGO_SECRET_KEY", "dev-only-do-not-use-in-prod")
 DEBUG = os.environ.get("DJANGO_DEBUG", "0") == "1"
 ALLOWED_HOSTS = os.environ.get("DJANGO_ALLOWED_HOSTS", "localhost,127.0.0.1").split(",")
 
-ROOT_URLCONF = "web.interview_judge.urls"
-ASGI_APPLICATION = "web.interview_judge.asgi.application"
+ROOT_URLCONF = "web.galley.urls"
+ASGI_APPLICATION = "web.galley.asgi.application"
 
 INSTALLED_APPS = [
     "daphne",
@@ -82,8 +82,8 @@ TEMPLATES = [
 DATABASES = {
     "default": {
         "ENGINE": "django.db.backends.postgresql",
-        "NAME": os.environ.get("POSTGRES_DB", "interview_judge"),
-        "USER": os.environ.get("POSTGRES_USER", "interview_judge"),
+        "NAME": os.environ.get("POSTGRES_DB", "galley"),
+        "USER": os.environ.get("POSTGRES_USER", "galley"),
         "PASSWORD": os.environ.get("POSTGRES_PASSWORD", ""),
         "HOST": os.environ.get("POSTGRES_HOST", "db"),
         "PORT": os.environ.get("POSTGRES_PORT", "5432"),
@@ -112,7 +112,7 @@ CHANNEL_LAYERS = {
 
 # --- django-q2 (scheduler runs OUT-OF-PROCESS — Plan REV-1) ---
 Q_CLUSTER = {
-    "name": "interview_judge",
+    "name": "galley",
     "workers": 2,
     "recycle": 500,
     "timeout": 60,

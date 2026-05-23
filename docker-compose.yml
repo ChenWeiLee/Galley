@@ -1,4 +1,4 @@
-# interview-judge stack
+# galley stack
 # - web: Daphne ASGI (Django + Channels)
 # - scheduler: django-q2 worker (separate process — Plan REV-1)
 # - db: Postgres 16 (also stores django-q2 jobstore — Plan REV-1)
@@ -9,7 +9,7 @@
 services:
   web:
     build: .
-    command: daphne -b 0.0.0.0 -p 8000 web.interview_judge.asgi:application
+    command: daphne -b 0.0.0.0 -p 8000 web.galley.asgi:application
     env_file: .env
     volumes:
       - .:/app
@@ -44,7 +44,7 @@ services:
       # cluster is processing jobs end-to-end (broker → worker → DB write).
       test:
         - CMD-SHELL
-        - 'python -W ignore -c "import django,os; os.environ.setdefault(''DJANGO_SETTINGS_MODULE'',''web.interview_judge.settings''); django.setup(); from django_q.models import Success; from django.utils import timezone; from datetime import timedelta; assert Success.objects.filter(stopped__gte=timezone.now()-timedelta(seconds=180)).exists(), ''no recent task success''" 2>/dev/null || exit 1'
+        - 'python -W ignore -c "import django,os; os.environ.setdefault(''DJANGO_SETTINGS_MODULE'',''web.galley.settings''); django.setup(); from django_q.models import Success; from django.utils import timezone; from datetime import timedelta; assert Success.objects.filter(stopped__gte=timezone.now()-timedelta(seconds=180)).exists(), ''no recent task success''" 2>/dev/null || exit 1'
       interval: 60s
       timeout: 15s
       retries: 3

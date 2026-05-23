@@ -56,15 +56,15 @@ Recommended path (no GitHub remote required):
 rsync -avz --delete \
     --exclude '.git' --exclude '.env' --exclude 'ops/backup/dumps' \
     --exclude '__pycache__' --exclude '.DS_Store' \
-    "/Users/enoch/Library/Mobile Documents/com~apple~CloudDocs/GitHub/CodeInterview/" \
-    user@your-linux-box:/opt/interview-judge/
+    "/Users/enoch/Library/Mobile Documents/com~apple~CloudDocs/GitHub/Galley/" \
+    user@your-linux-box:/opt/galley/
 
 # DELETE the override that pins nginx to :8080 on Mac:
-ssh user@your-linux-box "rm /opt/interview-judge/docker-compose.override.yml"
+ssh user@your-linux-box "rm /opt/galley/docker-compose.override.yml"
 
 # On the Linux box:
 ssh user@your-linux-box
-cd /opt/interview-judge
+cd /opt/galley
 cp .env.example .env
 $EDITOR .env   # set DJANGO_SECRET_KEY, POSTGRES_PASSWORD,
                # JUDGE0_CALLBACK_HMAC_SECRET, DJANGO_ALLOWED_HOSTS
@@ -101,7 +101,7 @@ To restore a backup into a clean stack:
 ```bash
 docker compose down -v   # WIPES THE DB. ALWAYS BACK UP BEFORE THIS.
 docker compose up -d db
-gunzip -c ops/backup/dumps/interview_judge-20260518T030000Z.sql.gz \
+gunzip -c ops/backup/dumps/galley-20260518T030000Z.sql.gz \
     | docker compose exec -T db psql -U "$POSTGRES_USER" -d "$POSTGRES_DB"
 docker compose up -d
 ```

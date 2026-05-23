@@ -6,7 +6,7 @@
 set -e
 
 STAMP=$(date -u +"%Y%m%dT%H%M%SZ")
-OUT="/backup/dumps/interview_judge-${STAMP}.sql.gz"
+OUT="/backup/dumps/galley-${STAMP}.sql.gz"
 
 mkdir -p /backup/dumps
 
@@ -18,6 +18,6 @@ PGPASSWORD="${POSTGRES_PASSWORD}" pg_dump \
 echo "wrote ${OUT}"
 
 # Retention: 14 days
-find /backup/dumps -name "interview_judge-*.sql.gz" -mtime +14 -delete
+find /backup/dumps -name "galley-*.sql.gz" -mtime +14 -delete
 
 echo "retention pass complete"

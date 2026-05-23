@@ -18,4 +18,4 @@ COPY . .
 
 EXPOSE 8000
 
-CMD ["daphne", "-b", "0.0.0.0", "-p", "8000", "web.interview_judge.asgi:application"]
+CMD ["daphne", "-b", "0.0.0.0", "-p", "8000", "web.galley.asgi:application"]

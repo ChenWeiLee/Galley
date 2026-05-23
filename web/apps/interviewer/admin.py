@@ -8,7 +8,7 @@ WRITE PATH ASYMMETRY (Patch #3 / Plan REV-8):
     `DjangoProblemRepository.get_by_slug`/`list_all`.
 
     This is intentional. Documented in `domain/README.md`. See ADR in
-    `.omx-flow/plans/plan-interview-judge.md`.
+    `.omx-flow/plans/plan-galley.md`.
 """
 from __future__ import annotations
 

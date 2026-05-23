@@ -32,7 +32,7 @@ from django.http import HttpRequest, HttpResponse
 
 
 def set_session_cookie(response: HttpResponse, session_id: str) -> None:
-    signed = signing.dumps(session_id, salt="interview-judge.session")
+    signed = signing.dumps(session_id, salt="galley.session")
     response.set_cookie(
         key=settings.INTERVIEW_SESSION_COOKIE_NAME,
         value=signed,
@@ -50,7 +50,7 @@ def read_session_cookie(request: HttpRequest) -> str | None:
     try:
         return signing.loads(
             raw,
-            salt="interview-judge.session",
+            salt="galley.session",
             max_age=settings.INTERVIEW_SESSION_COOKIE_MAX_AGE_SECONDS,
         )
     except signing.BadSignature:

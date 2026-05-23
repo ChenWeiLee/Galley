@@ -1,6 +1,10 @@
-# interview-judge
+# Galley
 
-Internal coding-interview judge platform. Self-host on company LAN, no third-party SaaS.
+Internal coding-interview platform — code is drafted, executed, and reviewed in
+a sandboxed workspace. Self-hosted on company LAN, no third-party SaaS.
+
+> *galley* — printer's proof + ship's / kitchen's workstation. A draft passes
+> through here before it ships.
 
 > Status: Phase 1–13 complete (Steps 1–13 of 14). Chaos soak passed (5/5).
 > Only Step 14 — real-candidate pilot — remains. See [project tracking note](../../zettelkasten/4-project/).
@@ -79,7 +83,7 @@ spec → no DTO mapper layer; repos return ORM-typed models behind Protocol).
 
 ## Acceptance criteria
 
-See `.omx-flow/specs/interview-interview-judge.md` (in zettelkasten). Headline:
+See `.omx-flow/specs/interview-galley.md` (in zettelkasten). Headline:
 **5 consecutive 60-min interviews without incident**. Verified — see soak section.
 
 ## Development
