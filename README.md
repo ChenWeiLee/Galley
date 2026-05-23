@@ -9,6 +9,8 @@ a sandboxed workspace. Self-hosted on company LAN, no third-party SaaS.
 > Status: Phase 1–13 complete (Steps 1–13 of 14). Chaos soak passed (5/5).
 > Only Step 14 — real-candidate pilot — remains. See [project tracking note](../../zettelkasten/4-project/).
 
+![Interviewer dashboard](docs/screenshots/dashboard.png)
+
 ## Quickstart
 
 ```bash
@@ -22,7 +24,70 @@ make seed             # load 15 canonical LeetCode problems
 Open:
 - **Interviewer**: http://localhost:8000/dashboard/ (also /admin/)
 - **Health**: http://localhost:8000/healthz · `/readyz`
-- **nginx WSS** (prod-style): http://localhost
+- **nginx WSS** (prod-style): http://localhost:8080
+
+## Walkthrough — running an interview
+
+### 1. Open the dashboard
+
+Go to `http://localhost:8000/dashboard/`. The form at *§ 02* is where every
+interview starts: pick a problem, label the candidate (for your own records,
+the candidate never sees it), set the duration.
+
+![Dashboard with new-session form](docs/screenshots/dashboard.png)
+
+### 2. Issue a token URL
+
+Click **發送連結 ⤳** (or **Issue token URL ⤳** in EN). A vermillion notice
+appears with a single-use URL that expires in 24 h. Copy and send it to the
+candidate via Slack / email / whatever channel you trust.
+
+### 3. Candidate enters the session
+
+When the candidate opens the URL, it is consumed (one shot, not forwardable),
+a signed cookie is dropped, and they land in the coding stage: problem
+statement on the left, Monaco editor on the right, countdown top-right.
+EN / 中 toggle sits in the brief eyebrow so it doesn't collide with the
+submit button.
+
+![Candidate coding session](docs/screenshots/candidate-session.png)
+
+If they reload, close the tab, or their Wi-Fi blips, the cookie carries them
+back — capped at 3 re-entries per session. Token replay attempts (forwarding
+the original URL after consumption) are rejected.
+
+### 4. Observe live (optional)
+
+From the dashboard *Recent sessions* row, click **觀看 / Observe**. You see
+their editor content streamed via WebSocket (5 s snapshot cadence, durable
+across web container restarts).
+
+### 5. Candidate submits
+
+Pressing **送出 ▸** (or ⌘+Enter) ships the code to Judge0. The verdict —
+plus per-testcase results for *example* testcases — appears in the result
+pane. Hidden testcases never leak stdin/stdout (security invariant).
+
+![Verdict view](docs/screenshots/candidate-verdict.png)
+
+### 6. Review after the session
+
+From the dashboard, click **檢視 / Review**. You get:
+- Final submission(s) with verdict + per-testcase breakdown
+- Snapshot replay (scrub through the candidate's 5-second snapshots)
+- Anti-cheat event log (focus loss, paste, copy)
+
+## Managing the problem library
+
+The Django admin at `/admin/interviewer/problem/` is the source of truth for
+problems and testcases. After `make seed` you have 15 canonical LeetCode
+problems; add/edit your own here.
+
+![Problem library](docs/screenshots/admin-problems.png)
+
+Admin is fully i18n'd (EN / 中 toggle top-right):
+
+![Admin in Traditional Chinese](docs/screenshots/admin-zh.png)
 
 ## What works today
 
